@@ -1,4 +1,5 @@
 import json
+import os
 
 from django.core.management.base import BaseCommand
 from product_recommender.models import Product
@@ -8,7 +9,13 @@ class Command(BaseCommand):
     help = 'Populates the Product table with data from metadata.json'
 
     def handle(self, *args, **options):
-        with open('metadata.json', 'r') as f:   # 'r' is read mode
+        # Get the directory of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__)) 
+
+        # Construct the relative path to metadata.json
+        file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata.json')
+
+        with open(file_path, 'r') as f:
             data = json.load(f)
 
         for item in data:
