@@ -1,4 +1,4 @@
-import json
+import ijson
 import os
 
 from django.core.management.base import BaseCommand
@@ -16,17 +16,21 @@ class Command(BaseCommand):
         file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata.json')
 
         with open(file_path, 'r') as f:
-            data = json.load(f)
+            for item in ijson.items(f, 'item'):
 
-        for item in data:
-            # Check if the product belongs to the 'Home & Kitchen' category
-            categories = item.get('categories', [])
-            if any('Home & Kitchen' in category for category in categories):
-                product = Product(
-                    product_id=item['asin'],
-                    name=item['title'],
-                    image_url=item['imUrl']
-                )
-                product.save()
+                try:
+                    # Check if the product belongs to the 'Home & Kitchen' category
+                    categories = item.get('categories', [])
+                    if any('Home & Kitchen' in category for category in categories):
+                        product = Product(
+                            product_id=item['asin'],
+                            name=item['title'],
+                            image_url=item['imUrl']
+                        )
+                        product.save()
+
+                except Exception as e:  # Catch any errors during processing
+                    print(f"Error processing item: {item}")
+                    print(e)
 
         self.stdout.write(self.style.SUCCESS('Successfully populated the Product table'))
