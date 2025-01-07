@@ -13,7 +13,7 @@ class Command(BaseCommand):
         script_dir = os.path.dirname(os.path.abspath(__file__)) 
 
         # Construct the relative path to metadata.json
-        file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata.json')
+        file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata_processed.json')
 
         with open(file_path, 'r') as f:
             for item in ijson.items(f, 'item'):
