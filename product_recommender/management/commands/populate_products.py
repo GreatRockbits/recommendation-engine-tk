@@ -19,7 +19,7 @@ class Command(BaseCommand):
         data = []  # Initialize an empty list to store the batch
 
         with open(file_path, 'r') as f:
-            for item in ijson.items(f, 'item'):
+            for item in ijson.items(f, 'item', multiple_values=True):
                 data.append(item)  # Add the item to the batch
 
                 if len(data) >= batch_size:
