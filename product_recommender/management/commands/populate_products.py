@@ -22,25 +22,27 @@ class Command(BaseCommand):
         with open(file_path, 'r') as f:
             for item in ijson.items(f, 'item', multiple_values=True):
                 try:
-                    product_id = item['asin']
-                    print(item)
+                    # Check if "Home & Garden" is in the categories list
+                    categories = item.get('categories')
+                    if categories and any("Home & Garden" in sublist for sublist in categories):
+                        product_id = item['asin']
 
-                    # Use update_or_create to handle existing products
-                    Product.objects.update_or_create(
-                        product_id=product_id,
-                        defaults={
-                            'name': item['title'],
-                            'image_url': item['imUrl']
-                        }
-                    )
+                        Product.objects.update_or_create(
+                            product_id=product_id,
+                            defaults={
+                                'name': item['title'],
+                                'image_url': item['imUrl']
+                            }
+                        )
 
-                    processed_count += 1  # Increment the counter
+                        processed_count += 1
 
-                except Exception as e:  # Catch any errors during processing
+                except Exception as e: 
                     print(f"Error processing item: {item}")
                     print(e)
 
-        print(f"Processed {processed_count} items.")  # Print the total count
+            print(f"Processed {processed_count} items.") 
+
         # with open(file_path, 'r') as f:
         #     for item in ijson.items(f, 'item', multiple_values=True):
         #         print(item) 

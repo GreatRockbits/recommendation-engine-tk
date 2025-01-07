@@ -6,9 +6,10 @@ from django.conf import settings
 
 # All of the products in the Home & Kitchen category
 class Product(models.Model):
-    product_id = models.IntegerField(primary_key=True)
+    product_id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
     image_url = models.CharField(max_length=255)
+    price = models.IntegerField(null=True)
 
 # All of the reviews for the products in the Home & Kitchen category
 class Review(models.Model):
