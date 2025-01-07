@@ -17,7 +17,7 @@ class Command(BaseCommand):
             try:
                 with gzip.open(path, 'r') as g:
                     for l in g:
-                        yield json.dumps(eval(l))
+                        yield json.dumps(eval(l)) + '\n'
             except FileNotFoundError:
                 self.stderr.write(self.style.ERROR(f"Error: Input file '{input_file_path}' not found."))
                 return
