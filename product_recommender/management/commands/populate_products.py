@@ -1,4 +1,5 @@
 import ijson
+import json
 import os
 
 from django.core.management.base import BaseCommand
@@ -14,41 +15,32 @@ class Command(BaseCommand):
 
         # Construct the relative path to metadata.json
         file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata_processed.json')
+        print(file_path)
 
-        batch_size = 1000  # Define the desired batch size
-        data = []  # Initialize an empty list to store the batch
+        processed_count = 0  # Initialize a counter for processed items
 
         with open(file_path, 'r') as f:
             for item in ijson.items(f, 'item', multiple_values=True):
-                data.append(item)  # Add the item to the batch
+                try:
+                    product_id = item['asin']
+                    print(item)
 
-                if len(data) >= batch_size:
-                    self.process_batch(data)  # Process the batch
-                    data = []  # Reset the batch list
-
-            # Process any remaining items after the loop
-            if data:
-                self.process_batch(data)
-
-    def process_batch(self, data):
-        for item in data:
-            try:
-                product_id = item['asin']
-
-                # Check if the product already exists in the database
-                if Product.objects.filter(product_id=product_id).exists():
-                    continue
-
-                # Check if the product belongs to the 'Home & Kitchen' category
-                categories = item.get('categories', [])
-                if any('Home & Kitchen' in category for category in categories):
-                    product = Product(
+                    # Use update_or_create to handle existing products
+                    Product.objects.update_or_create(
                         product_id=product_id,
-                        name=item['title'],
-                        image_url=item['imUrl']
+                        defaults={
+                            'name': item['title'],
+                            'image_url': item['imUrl']
+                        }
                     )
-                    product.save()
 
-            except Exception as e:  # Catch any errors during processing
-                print(f"Error processing item: {item}")
-                print(e)
+                    processed_count += 1  # Increment the counter
+
+                except Exception as e:  # Catch any errors during processing
+                    print(f"Error processing item: {item}")
+                    print(e)
+
+        print(f"Processed {processed_count} items.")  # Print the total count
+        # with open(file_path, 'r') as f:
+        #     for item in ijson.items(f, 'item', multiple_values=True):
+        #         print(item) 
