@@ -18,20 +18,29 @@ class Command(BaseCommand):
         print(file_path)
 
         processed_count = 0  # Initialize a counter for processed items
+        skip_count = 0
 
         with open(file_path, 'r') as f:
-            for item in ijson.items(f, 'item', multiple_values=True):
+            for item in ijson.items(f, 'item'):
                 try:
+                    if 'title' not in item:
+                        print(f"Skipping item without title: {item['asin']}") 
+                        skip_count += 1
+                        continue  # Skip to the next item
+                    
                     # Check if "Home & Garden" is in the categories list
                     categories = item.get('categories')
-                    if categories and any("Home & Garden" in sublist for sublist in categories):
-                        product_id = item['asin']
+                    if categories and any("Home & Kitchen" in sublist for sublist in categories):
+
+                        product_id = item.get('asin')
+                        price = item.get('price')
 
                         Product.objects.update_or_create(
                             product_id=product_id,
                             defaults={
-                                'name': item['title'],
-                                'image_url': item['imUrl']
+                                'name': item.get('title'),  # Use .get() for safety
+                                'image_url': item.get('imUrl'),
+                                'price': price,
                             }
                         )
 
@@ -41,7 +50,8 @@ class Command(BaseCommand):
                     print(f"Error processing item: {item}")
                     print(e)
 
-            print(f"Processed {processed_count} items.") 
+        print(f"Processed {processed_count} items.") 
+        print(f"Skipped {skip_count} items.") 
 
         # with open(file_path, 'r') as f:
         #     for item in ijson.items(f, 'item', multiple_values=True):

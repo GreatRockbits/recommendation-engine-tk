@@ -9,7 +9,7 @@ class Product(models.Model):
     product_id = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
     image_url = models.CharField(max_length=255)
-    price = models.IntegerField(null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
 # All of the reviews for the products in the Home & Kitchen category
 class Review(models.Model):
