@@ -5,12 +5,12 @@ import gzip
 from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):
-    help = 'Creates a new metadata_processed.json file with valid JSON format.'
+    help = 'Creates a new home_and_kitchen_reviews_processed.json file with valid JSON format.'
 
     def handle(self, *args, **options):
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        input_file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata.json.gz')
-        output_file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'metadata_processed.json')
+        input_file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'home_and_kitchen_reviews.json.gz')
+        output_file_path = os.path.join(script_dir, '..', '..', '..', 'data_files', 'home_and_kitchen_reviews_processed.json')
 
         try:
             with gzip.open(input_file_path, 'r') as g, open(output_file_path, 'w') as f:
