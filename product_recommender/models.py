@@ -16,6 +16,7 @@ class Review(models.Model):
     product_id = models.ForeignKey('Product', on_delete=models.CASCADE)
     review_id = models.IntegerField()
     review_title = models.TextField(null=True)
+    review_username = models.CharField(max_length=255, default='default user')
     review_score = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     review_text = models.TextField(null=True)
     created_at_unix = models.IntegerField(blank=True, null=True)

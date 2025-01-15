@@ -1,3 +1,8 @@
+# This class creates a base command which takes the home and kitchen reviews gzip file and 
+# writes a new JSON file which is formatted to the official JSON specification
+# To run this, use "python manage.py clean_reviews_and_write_new_file" in the CLI
+# Note that the input_file_path can be amended to fit your chosen filename
+
 import json
 import os
 import gzip

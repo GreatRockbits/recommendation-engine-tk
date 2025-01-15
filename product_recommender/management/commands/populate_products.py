@@ -1,3 +1,8 @@
+# This class creates a base command which takes the file output from clean_metadata_and_write_new_file
+# and writes the data to a the database defined in Django's settings.py
+# To run this, use "python manage.py populate_products" in the CLI
+# Note that the file_path can be amended to fit your chosen filename
+
 import ijson
 import json
 import os
