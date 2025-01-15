@@ -1,6 +1,7 @@
-Product Recommender with LLM Review Summarisation
+<h2>Product Recommender with LLM Review Summarisation</h2>
 
-Description:
+<h3>Description:</h3>
+
 This is a demonstration project which does the following:
 1. Takes Amazon reviews and product metadata from JSON files
 2. Saves these to a database for query efficiency
