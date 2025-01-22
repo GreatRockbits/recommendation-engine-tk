@@ -33,3 +33,9 @@ https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Home_an
 3. Save the data files as gzip in the new folder
 4. Run the following base commands to get the data in standard JSON format
 5. Run the following base commands to populate the database.
+
+Information sources:
+https://huggingface.co/blog/noob_intro_transformers
+https://huggingface.co/docs/transformers/model_doc/auto
+https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
+https://huggingface.co/docs/transformers/en/llm_tutorial

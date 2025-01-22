@@ -21,7 +21,7 @@ class LLAMASummarizer:
         self.model_id = model_id
         self.access_token = access_token
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.max_input_length = 3584  # Reserve space for generation
+        self.max_input_length = 12000  # Reserve space for generation - 3584
         self._initialize_model()
 
     def _initialize_model(self) -> None:
