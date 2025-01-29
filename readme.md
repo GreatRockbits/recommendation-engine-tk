@@ -39,3 +39,4 @@ https://huggingface.co/blog/noob_intro_transformers
 https://huggingface.co/docs/transformers/model_doc/auto
 https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
 https://huggingface.co/docs/transformers/en/llm_tutorial
+https://www.youtube.com/watch?v=QEaBAZQCtwE
