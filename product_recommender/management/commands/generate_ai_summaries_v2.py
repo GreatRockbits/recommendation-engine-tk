@@ -34,8 +34,8 @@ class Command(BaseCommand):
 # 5 - Generate negative AI summary by adding prompt and reviews
 # 6 - Write summaries to database
 # 7 - Call all of these in a base command    
-# Initialise the llama model with appropriate parameters
 
+# Initialise the llama model with appropriate parameters
 class GenerateAISummaries:
 
     # constructor method
@@ -61,6 +61,7 @@ class GenerateAISummaries:
                 self.model_id, 
                 token=self.access_token
             )
+            self.tokenizer.pad_token = self.tokenizer.eos_token
 
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_id, 
@@ -91,15 +92,17 @@ class GenerateAISummaries:
         try:
             # get reviews for this product_id
             reviews = Review.objects.filter(product_id_id=product_id)
+            if not reviews.exists():
+                logger.info(f"no reviews found for {product_id}")
             
             # concatenate found reviews
             for review in reviews:
-                concatenated_reviews += review.review_text
+                concatenated_reviews += str(review.review_text)
 
-            logger.info(f"successfully concatenated for {product_id}, length: " + len({concatenated_reviews}))
+            logger.info(f"successfully concatenated for {product_id}, length: {len(concatenated_reviews)}")
 
         except Exception as e:
-            logger.error(f"couldn't concatenate reviews for ASIN: {product_id}")
+            logger.error(f"couldn't concatenate reviews for ASIN: {product_id}, stuck at concatenate_reviews because {e}")
 
         return concatenated_reviews
         
@@ -120,7 +123,8 @@ class GenerateAISummaries:
             tokenized_reviews = self.tokenizer.tokenize(
                 review_text, 
                 add_special_tokens=False,
-                max_length=max_review_token_length
+                max_length=max_review_token_length,
+                truncation=True
             )
             logger.info(f"successfully truncated reviews")
             return tokenized_reviews
@@ -150,8 +154,8 @@ class GenerateAISummaries:
             input_ids = self.tokenizer(
                 self.positive_review_sentiment_prompt + " " + concatenated_reviews,
                 return_tensors="pt",
-                truncation=True,
-                max_length=self.max_input_length
+                max_length=self.max_input_length,
+                truncation=True
             )["input_ids"].to(self.model.device)
 
             # Step 4: Generate a summary
@@ -191,9 +195,9 @@ class GenerateAISummaries:
             # Step 3: Prepare input for the model (combine prompt and reviews)
             input_ids = self.tokenizer(
                 self.negative_review_sentiment_prompt + " " + concatenated_reviews,
-                return_tensors="pt",
-                truncation=True,
-                max_length=self.max_input_length
+                return_tensors="pt",       
+                max_length=self.max_input_length,
+                truncation=True
             )["input_ids"].to(self.model.device)
 
             # Step 4: Generate a summary

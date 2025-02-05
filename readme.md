@@ -33,6 +33,9 @@ https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Home_an
 3. Save the data files as gzip in the new folder
 4. Run the following base commands to get the data in standard JSON format
 5. Run the following base commands to populate the database.
+6. Ensure you have Ollama installed: https://ollama.com/download
+7. Launch the command prompt in Windows and type "ollama run llama3.2"
+8. 
 
 Information sources:
 https://huggingface.co/blog/noob_intro_transformers
@@ -40,3 +43,4 @@ https://huggingface.co/docs/transformers/model_doc/auto
 https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
 https://huggingface.co/docs/transformers/en/llm_tutorial
 https://www.youtube.com/watch?v=QEaBAZQCtwE
+https://medium.com/@manuelescobar-dev/running-llama-3-locally-with-ollama-9881706df7ac

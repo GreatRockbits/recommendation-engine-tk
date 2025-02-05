@@ -4,3 +4,4 @@ data_files/
 .env
 db.sqlite3
 ../db.sqlite3
+testing_playground/
