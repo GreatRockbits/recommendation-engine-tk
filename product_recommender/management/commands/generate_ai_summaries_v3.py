@@ -12,8 +12,14 @@ logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = "Generate AI summaries for products in the database"
+    
 
     def handle(self, *args, **options):
+
+        # log which products have been processed
+        with open('processed_products.txt', 'w') as f:
+            f.write('')  # Empty the file
+
         generator = GenerateAISummaries()
         generator.generate_ai_summaries()
 
@@ -23,8 +29,31 @@ class GenerateAISummaries:
     # constructor method
     def __init__(self):
         # Define global variables
-        self.positive_review_sentiment_prompt = "For the following review text, summarise one positive aspect about the product in a single sentence"
-        self.negative_review_sentiment_prompt = "For the following review text, summarise one negative aspect about the product in a single sentence"
+        self.positive_review_sentiment_prompt = """You are a precise review analyzer. Your responses must:
+                                                    1. Be EXACTLY one sentence
+                                                    2. Focus ONLY on positive aspects
+                                                    3. Never include greetings or additional commentary
+                                                    4. Never make suggestions or recommendations
+                                                    5. Never include cons or overall assessment"""
+        self.negative_review_sentiment_prompt = """You are a precise review analyzer. Your responses must:
+                                                    1. Be EXACTLY one sentence
+                                                    2. Focus ONLY on negative aspects
+                                                    3. Never include greetings or additional commentary
+                                                    4. Never make suggestions or recommendations
+                                                    5. Never include pros or overall assessment"""
+
+
+    def log_processed_product(self, product_id, success=True):
+        """
+        Logs processed product IDs to a file with their status.
+        
+        Args:
+            product_id: The ID of the processed product
+            success: Boolean indicating if processing was successful
+        """
+        status = "SUCCESS" if success else "FAILED"
+        with open('processed_products.txt', 'a') as f:
+            f.write(f"{product_id}: {status}\n")
 
 
     def generate_ai_summaries(self):
@@ -42,16 +71,23 @@ class GenerateAISummaries:
 
                 # Create or update Summary object
                 product_obj = Product.objects.get(product_id=product.product_id) 
-                summary , created = Summary.objects.update_or_create(product_id=product_obj) 
+                summary, created = Summary.objects.update_or_create(
+                    product_id=product_obj,
+                    defaults={
+                        'positive_sentiment': positive_summary,
+                        'negative_sentiment': negative_summary,
+                    }
+                )
                 summary.positive_sentiment = positive_summary
                 summary.negative_sentiment = negative_summary
                 summary.save()
 
                 logger.info(f"Generated summaries for product ID: {product.product_id}")
+                self.log_processed_product(product.product_id)
 
             except Exception as e:
                 logger.error(f"Failed to generate summaries for product ID: {product.product_id}: {e}")
-
+                self.log_processed_product(product.product_id, success=False)
 
     def generate_summary(self, reviews_text, prompt):
         """
@@ -65,12 +101,15 @@ class GenerateAISummaries:
             The generated summary.
         """
         try:
-            prompt_plus_reviews = prompt + "\n\n" + reviews_text
+            prompt_plus_reviews = f"{prompt}\n\nREVIEW TEXT:\n{reviews_text}\n\n"
             # Stream response
             response = ollama.generate(
                 model="llama3.2",  # Specify the model explicitly
                 prompt=prompt_plus_reviews, 
                 stream=True,
+                options={
+                    "max_tokens": 10  # Adjust the output tokens
+                }
             )
             summary = ""
             for chunk in response:
