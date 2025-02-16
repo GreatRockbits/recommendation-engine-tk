@@ -1,5 +1,5 @@
 # A class to generate AI summaries from the reviews in the Review database
-# Relies on using a local instance of LLAMA 3.2 3B via Ollama and appropriate hardware
+# Relies on using a local instance of LLAMA 3.2 3B via Ollama and appropriate local hardware
 # Designed to run on an NVIDIA RTX 3080ti
 # Run by using "python manage.py generate_ai_summaries_v3" in the terminal
 
@@ -10,10 +10,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Django convention for running a command from the CLI
 class Command(BaseCommand):
     help = "Generate AI summaries for products in the database"
     
-
+    # Django convention for the actions taken when running the command
+    # In this case, writing the log file, creating an instance of GenerateAISummaries, and generating AI summaries
     def handle(self, *args, **options):
 
         # log which products have been processed
@@ -22,6 +24,7 @@ class Command(BaseCommand):
 
         generator = GenerateAISummaries()
         generator.generate_ai_summaries()
+
 
 # Initialise the llama model with appropriate parameters
 class GenerateAISummaries:
@@ -42,7 +45,7 @@ class GenerateAISummaries:
                                                     4. Never make suggestions or recommendations
                                                     5. Never include pros or overall assessment"""
 
-
+    # function to be called for the log file, stating product_id and success/failure, writing to the file
     def log_processed_product(self, product_id, success=True):
         """
         Logs processed product IDs to a file with their status.
@@ -55,14 +58,17 @@ class GenerateAISummaries:
         with open('processed_products.txt', 'a') as f:
             f.write(f"{product_id}: {status}\n")
 
-
+    # Loops over all products in Product model, concatenates reviews for the product,
+    # calls generate_summary for them to generate positive/negative AI summaries
+    # saves to the Summary model
+    # logs success/failure in the processed_products.txt file
     def generate_ai_summaries(self):
         """
         Generates AI summaries for all products in the database.
         """
         for product in Product.objects.all():
             try:
-                print(product.product_id)
+                print(f"product id under inspection: " + product.product_id)
                 reviews = Review.objects.filter(product_id_id=product.product_id)
                 concatenated_reviews = "\n\n".join([review.review_text for review in reviews])
 
@@ -89,6 +95,8 @@ class GenerateAISummaries:
                 logger.error(f"Failed to generate summaries for product ID: {product.product_id}: {e}")
                 self.log_processed_product(product.product_id, success=False)
 
+    # generates a summary for an individual product
+    # agnostic towards positive, negative - depends on the prompt argument
     def generate_summary(self, reviews_text, prompt):
         """
         Generates a summary using the Ollama model.

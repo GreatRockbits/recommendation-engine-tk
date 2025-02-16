@@ -22,6 +22,9 @@ https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/meta_Home_and_K
 Home and Kitchen Reviews:
 https://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Home_and_Kitchen.json.gz
 
+Other datasets to use
+https://github.com/caserec/Datasets-for-Recommender-Systems
+
 
 <h3>Installation:</h3>
 1. Virtual environment
@@ -44,3 +47,6 @@ https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
 https://huggingface.co/docs/transformers/en/llm_tutorial
 https://www.youtube.com/watch?v=QEaBAZQCtwE
 https://medium.com/@manuelescobar-dev/running-llama-3-locally-with-ollama-9881706df7ac
+https://replicate.com/blog/how-to-prompt-llama
+https://www.kdnuggets.com/ollama-tutorial-running-llms-locally-made-super-simple
+https://www.kaggle.com/code/ibtesama/getting-started-with-a-movie-recommendation-system/notebook
