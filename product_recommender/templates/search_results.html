@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results</h1>
+
+    {% if query %}
+        <p>You searched for: <strong>{{ query }}</strong></p>
+    {% endif %}
+
+    {% if products %}
+        <ul>
+            {% for product in products %}
+                <li><a href="{% url 'product_detail' product_id=product.product_id %}">{{ product.name }} ({{ product.product_id }})</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No products found matching your search criteria.</p>
+    {% endif %}
+
+    <p><a href="{% url 'homepage' %}">Back to Homepage</a></p>
+</body>
+</html>

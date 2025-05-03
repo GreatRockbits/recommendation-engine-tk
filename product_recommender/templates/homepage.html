@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product Search</title>
+  </head>
+  <body>
+    <h1>Search for a Product</h1>
+    <form method="get" action="{% url 'search_results' %}">
+      <input type="text" name="q" placeholder="Enter product name or ID" />
+      <button type="submit">Search</button>
+    </form>
+
+    <h2>Feeling Lucky?</h2>
+    <p><a href="{% url 'random_product' %}">Choose a Random Product</a></p>
+
+    {% if message %}
+    <p style="color: green">{{ message }}</p>
+    {% endif %} {% if error %}
+    <p style="color: red">{{ error }}</p>
+    {% endif %}
+  </body>
+</html>

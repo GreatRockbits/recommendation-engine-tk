@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Detail</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Product Details</h1>
+        <div class="card mb-3">
+            <div class="row no-gutters">
+                <div class="col-md-4">
+                    <img src="{{ product.image_url }}" class="card-img" alt="{{ product.name }}">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">Price: ${{ product.price }}</p>
+                        <p class="card-text"><strong>Positive Sentiment:</strong> {{ product.summary.positive_sentiment }}</p>
+                        <p class="card-text"><strong>Negative Sentiment:</strong> {{ product.summary.negative_sentiment }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Recommended Products</h2>
+        <div class="row">
+            {% for recommendation in recommendations %}
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <img src="{{ recommendation.image_url }}" class="card-img-top" alt="{{ recommendation.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recommendation.name }}</h5>
+                            <p class="card-text">Price: ${{ recommendation.price }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2>Reviews</h2>
+        {% for review in reviews_page %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p>{{ review.review_text }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% if reviews_page.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ reviews_page.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><a class="page-link" href="#">{{ reviews_page.number }}</a></li>
+                {% if reviews_page.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ reviews_page.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
