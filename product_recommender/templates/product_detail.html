@@ -28,9 +28,13 @@
             {% for recommendation in recommendations %}
                 <div class="col-md-4 mb-3">
                     <div class="card">
-                        <img src="{{ recommendation.image_url }}" class="card-img-top" alt="{{ recommendation.name }}">
+                        <a href="{% url 'product_detail' product_id=recommendation.product_id %}">
+                            <img src="{{ recommendation.image_url }}" class="card-img-top" alt="{{ recommendation.name }}">
+                        </a>
                         <div class="card-body">
-                            <h5 class="card-title">{{ recommendation.name }}</h5>
+                            <h5 class="card-title">
+                                <a href="{% url 'product_detail' product_id=recommendation.product_id %}">{{ recommendation.name }}</a>
+                            </h5>
                             <p class="card-text">Price: ${{ recommendation.price }}</p>
                         </div>
                     </div>
