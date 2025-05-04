@@ -23,7 +23,7 @@ class Review(models.Model):
 
 # House the AI summaries of the reviews and allocate to their relevant products including 
 class Summary(models.Model):
-    product_id = models.ForeignKey('Product', on_delete=models.CASCADE)
+    product_id = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='summary')
     # product_one_to_one = models.OneToOneField('Product', on_delete=models.CASCADE, 
     #                              related_name='summary', null=True, blank=True)
     positive_sentiment = models.TextField(null=True)
