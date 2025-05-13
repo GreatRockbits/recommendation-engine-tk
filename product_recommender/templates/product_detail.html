@@ -1,72 +1,148 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Product Detail</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Product Details</h1>
-        <div class="card mb-3">
-            <div class="row no-gutters">
-                <div class="col-md-4">
-                    <img src="{{ product.image_url }}" class="card-img" alt="{{ product.name }}">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text">Price: ${{ product.price }}</p>
-                        <p class="card-text"><strong>Positive Sentiment:</strong> {{ positive_sentiment }}</p>
-                        <p class="card-text"><strong>Negative Sentiment:</strong> {{ negative_sentiment }}</p>
-                    </div>
-                </div>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mx-auto mt-8">
+      <h1>Product Details</h1>
+      <div class="card mb-5 mt-4">
+        <div class="row no-gutters">
+          <div class="col-md-4">
+            <img
+              src="{{ product.image_url }}"
+              class="card-img"
+              alt="{{ product.name }}"
+              style="max-width: 800; max-height: 600; width: auto; height: auto; padding: 20px;"
+            />
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <h3 class="card-title">{{ product.name }}</h5>
+              <p class="card-text">Price: ${{ product.price }}</p>
+              <p class="card-text">
+                <strong>AI Generated Summary of Positive Sentiment:</strong> {{ positive_sentiment }}
+              </p>
+              <p class="card-text">
+                <strong>AI Generated Summary of Negative Sentiment:</strong> {{ negative_sentiment }}
+              </p>
             </div>
+          </div>
         </div>
+      </div>
 
-        <h2>Recommended Products</h2>
-        <div class="row">
-            {% for recommendation in recommendations %}
-                <div class="col-md-4 mb-3">
-                    <div class="card">
-                        <a href="{% url 'product_detail' product_id=recommendation.product_id %}">
-                            <img src="{{ recommendation.image_url }}" class="card-img-top" alt="{{ recommendation.name }}">
-                        </a>
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="{% url 'product_detail' product_id=recommendation.product_id %}">{{ recommendation.name }}</a>
-                            </h5>
-                            <p class="card-text">Price: ${{ recommendation.price }}</p>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <h2>Reviews</h2>
-        {% for review in reviews_page %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <p>{{ review.review_text }}</p>
-                </div>
+      <h2>Recommended Products (Based on AI Summary)</h2>
+      <p class="text-muted">Time taken: {{ time_taken_summary }}</p>
+      <div class="row">
+        {% for recommendation in recommendations_from_summary %}
+        <div class="col-md-3 mb-3">
+          <div class="card">
+            <a
+              href="{% url 'product_detail' product_id=recommendation.product_id %}"
+            >
+              <img
+                src="{{ recommendation.image_url }}"
+                class="card-img-top"
+                alt="{{ recommendation.name }}"
+                style="max-width: 100; max-height: 75; padding: 20px;"
+              />
+            </a>
+            <div class="card-body">
+              <h5 class="card-title">
+                <a
+                  href="{% url 'product_detail' product_id=recommendation.product_id %}"
+                  >{{ recommendation.name }}</a
+                >
+              </h5>
+              <p class="card-text">Price: ${{ recommendation.price }}</p>
             </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-md-12">
+          <p>No recommendations based on AI summary.</p>
+        </div>
         {% endfor %}
+      </div>
 
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                {% if reviews_page.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ reviews_page.previous_page_number }}">Previous</a></li>
-                {% endif %}
-                <li class="page-item active"><a class="page-link" href="#">{{ reviews_page.number }}</a></li>
-                {% if reviews_page.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ reviews_page.next_page_number }}">Next</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+      <h2>Recommended Products (Based on Review Text)</h2>
+      <p class="text-muted">Time taken: {{ time_taken_reviews }}</p>
+      <div class="row">
+        {% for recommendation in recommendations_from_reviews %}
+        <div class="col-md-3 mb-3">
+          <div class="card">
+            <a
+              href="{% url 'product_detail' product_id=recommendation.product_id %}"
+            >
+              <img
+                src="{{ recommendation.image_url }}"
+                class="card-img-top"
+                alt="{{ recommendation.name }}"
+                style="max-width: 100; max-height: 75; padding: 20px;"
+              />
+            </a>
+            <div class="card-body">
+              <h5 class="card-title">
+                <a
+                  href="{% url 'product_detail' product_id=recommendation.product_id %}"
+                  >{{ recommendation.name }}</a
+                >
+              </h5>
+              <p class="card-text">Price: ${{ recommendation.price }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-md-12">
+          <p>No recommendations based on review text.</p>
+        </div>
+        {% endfor %}
+      </div>
 
+      <h2>Reviews</h2>
+      {% for review in reviews_page %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <p>{{ review.review_text|default:"No review text" }}</p>
+        </div>
+      </div>
+      {% empty %}
+      <p>No reviews available for this product.</p>
+      {% endfor %}
+
+      <nav aria-label="Page navigation">
+        <ul class="pagination">
+          {% if reviews_page.has_previous %}
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="?page={{ reviews_page.previous_page_number }}"
+              >Previous</a
+            >
+          </li>
+          {% endif %}
+          <li class="page-item {% if not reviews_page.has_previous and not reviews_page.has_next %}active{% endif %}">
+            <a class="page-link" href="#">{{ reviews_page.number }}</a>
+          </li>
+          {% if reviews_page.has_next %}
+          <li class="page-item">
+            <a
+              class="page-link"
+              href="?page={{ reviews_page.next_page_number }}"
+              >Next</a
+            >
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
+  </body>
 </html>

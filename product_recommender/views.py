@@ -7,7 +7,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from .models import Product, Summary, Review
 from .recommendation_engine.tfidf import tfidf_recommendations
+from .recommendation_engine.tfidf_reviews import tfidf_recommendations_from_reviews
 import random
+import time
 
 def homepage(request):
     """
@@ -46,7 +48,8 @@ def random_product(request):
 
 def product_detail(request, product_id=None):
     """
-    Displays product details and recommendations with paginated reviews.
+    Displays product details and recommendations from both TF-IDF approaches
+    with paginated reviews.
 
     Args:
         request: The HTTP request object.
@@ -67,9 +70,19 @@ def product_detail(request, product_id=None):
 
     else: # Product detail view
         product = get_object_or_404(Product, product_id=product_id)
-        
-    # Get recommendations
-    recommendations = tfidf_recommendations(product)[:3]
+
+    # Get recommendations from summary TF-IDF
+    start_time_summary = time.time()
+    recommendations_from_summary_objects = tfidf_recommendations(product)[:8]
+    end_time_summary = time.time()
+    time_taken_summary = end_time_summary - start_time_summary
+
+    # Get recommendations from review text TF-IDF
+    start_time_reviews = time.time()
+    recommendations_from_reviews = tfidf_recommendations_from_reviews(product)
+    end_time_reviews = time.time()
+    time_taken_reviews = end_time_reviews - start_time_reviews
+    recommendations_from_reviews = recommendations_from_reviews[:8] # Limit to 8 recommendations
 
     # Get all reviews for the product
     reviews = product.review_set.all()
@@ -102,7 +115,10 @@ def product_detail(request, product_id=None):
 
     context = {
         'product': product,
-        'recommendations': recommendations,
+        'recommendations_from_summary': recommendations_from_summary_objects,
+        'recommendations_from_reviews': recommendations_from_reviews,
+        'time_taken_summary': "{:.4f} seconds".format(time_taken_summary),
+        'time_taken_reviews': "{:.4f} seconds".format(time_taken_reviews),
         'positive_sentiment': positive_sentiment,
         'negative_sentiment': negative_sentiment,
         'reviews_page': reviews_page,

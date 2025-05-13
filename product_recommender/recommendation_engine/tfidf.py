@@ -3,7 +3,8 @@
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from ..models import Summary, Product
+from ..models import Summary, Product, Review
+import time
 
 # Initialize the vectorizers outside the function for better performance
 positive_vectorizer = TfidfVectorizer(stop_words='english')
