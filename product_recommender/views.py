@@ -46,82 +46,93 @@ def random_product(request):
         return render(request, 'homepage.html', {'error': 'Error fetching a random product.'})
 
 
-def product_detail(request, product_id=None):
-    """
-    Displays product details and recommendations from both TF-IDF approaches
-    with paginated reviews.
-
-    Args:
-        request: The HTTP request object.
-        product_id: The ID of the product to display. If None, a random product is selected.
-
-    Returns:
-        An HTTP response with the rendered template.
-    """
-
-    if product_id is None: # Random product selection
+def _get_product(product_id=None):
+    """Fetches a product instance, either by ID or a random one."""
+    if product_id:
+        return get_object_or_404(Product, product_id=product_id)
+    else:
         try:
             product = Product.objects.order_by('?').first()
             if product is None:
-                return HttpResponseNotFound("No products found.")
+                raise Product.DoesNotExist("No products found.")
+            return product
+        except Product.DoesNotExist as e:
+            raise HttpResponseNotFound(str(e))
         except Exception as e:
             print(f"Error selecting random product: {e}")
-            return HttpResponseServerError("Internal Server Error")
+            raise HttpResponseServerError("Internal Server Error")
 
-    else: # Product detail view
-        product = get_object_or_404(Product, product_id=product_id)
+def _get_recommendations_from_summary(product):
+    """Gets recommendations using the AI summary TF-IDF."""
+    start_time = time.time()
+    recommendations = tfidf_recommendations(product)[:4]
+    end_time = time.time()
+    time_taken = end_time - start_time
+    return recommendations, "{:.4f} seconds".format(time_taken)
 
-    # Get recommendations from summary TF-IDF
-    start_time_summary = time.time()
-    recommendations_from_summary_objects = tfidf_recommendations(product)[:8]
-    end_time_summary = time.time()
-    time_taken_summary = end_time_summary - start_time_summary
+def _get_recommendations_from_reviews(product):
+    """Gets recommendations using the raw review text TF-IDF."""
+    start_time = time.time()
+    recommendations = tfidf_recommendations_from_reviews(product)[:4]
+    end_time = time.time()
+    time_taken = end_time - start_time
+    return recommendations, "{:.4f} seconds".format(time_taken)
 
-    # Get recommendations from review text TF-IDF
-    start_time_reviews = time.time()
-    recommendations_from_reviews = tfidf_recommendations_from_reviews(product)
-    end_time_reviews = time.time()
-    time_taken_reviews = end_time_reviews - start_time_reviews
-    recommendations_from_reviews = recommendations_from_reviews[:8] # Limit to 8 recommendations
+def _get_product_summary(product):
+    """Fetches the positive and negative sentiment summary for a product."""
+    try:
+        summary = Summary.objects.filter(product_id=product).first()
+        if summary:
+            return summary.positive_sentiment, summary.negative_sentiment
+        else:
+            return "No summary available", "No summary available"
+    except Exception as e:
+        print(f"Error accessing summary: {e}")
+        return "No summary available", "No summary available"
 
-    # Get all reviews for the product
-    reviews = product.review_set.all()
-
-    # Paginate reviews
-    paginator = Paginator(reviews, 5)  # Show 5 reviews per page
+def _paginate_reviews(request, reviews, reviews_per_page=5):
+    """Paginates the reviews for a product."""
+    paginator = Paginator(reviews, reviews_per_page)
     page = request.GET.get('page')
     try:
         reviews_page = paginator.page(page)
     except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
         reviews_page = paginator.page(1)
     except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
         reviews_page = paginator.page(paginator.num_pages)
+    return reviews_page
 
+def product_detail(request, product_id=None):
+    """
+    Displays product details and recommendations from both TF-IDF approaches
+    with paginated reviews.
+    """
     try:
-        # Try to get the summary using the existing model relationship
-        summary = Summary.objects.filter(product_id=product).first()
-        if summary:
-            positive_sentiment = summary.positive_sentiment
-            negative_sentiment = summary.negative_sentiment
-        else:
-            positive_sentiment = "No summary available"
-            negative_sentiment = "No summary available"
+        product = _get_product(product_id)
+
+        recommendations_from_summary_objects, time_taken_summary = _get_recommendations_from_summary(product)
+        recommendations_from_reviews_objects, time_taken_reviews = _get_recommendations_from_reviews(product)
+
+        positive_sentiment, negative_sentiment = _get_product_summary(product)
+
+        reviews = product.review_set.all()
+        reviews_page = _paginate_reviews(request, reviews)
+
+        context = {
+            'product': product,
+            'recommendations_from_summary': recommendations_from_summary_objects,
+            'recommendations_from_reviews': recommendations_from_reviews_objects,
+            'time_taken_summary': time_taken_summary,
+            'time_taken_reviews': time_taken_reviews,
+            'positive_sentiment': positive_sentiment,
+            'negative_sentiment': negative_sentiment,
+            'reviews_page': reviews_page,
+        }
+
+        return render(request, 'product_detail.html', context)
+
+    except (HttpResponseNotFound, HttpResponseServerError) as e:
+        return e
     except Exception as e:
-        print(f"Error accessing summary: {e}")
-        positive_sentiment = "No summary available"
-        negative_sentiment = "No summary available"
-
-    context = {
-        'product': product,
-        'recommendations_from_summary': recommendations_from_summary_objects,
-        'recommendations_from_reviews': recommendations_from_reviews,
-        'time_taken_summary': "{:.4f} seconds".format(time_taken_summary),
-        'time_taken_reviews': "{:.4f} seconds".format(time_taken_reviews),
-        'positive_sentiment': positive_sentiment,
-        'negative_sentiment': negative_sentiment,
-        'reviews_page': reviews_page,
-    }
-
-    return render(request, 'product_detail.html', context)
+        print(f"An unexpected error occurred in product_detail: {e}")
+        return HttpResponseServerError("Internal Server Error")
