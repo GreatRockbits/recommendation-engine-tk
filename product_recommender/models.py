@@ -35,3 +35,11 @@ class Feedback(models.Model):
     recommended_product_id = models.IntegerField(primary_key=True)
     good_recommendation = models.BooleanField()
     created_at_unix = models.IntegerField(blank=True, null=True)
+
+# Model to record recommendation performance
+class RecommendationPerformance(models.Model):
+    product_id = models.ForeignKey('Product', on_delete=models.CASCADE)
+    summary_time = models.FloatField()
+    reviews_time = models.FloatField()
+    num_reviews = models.IntegerField()
+    recorded_at = models.DateTimeField(auto_now_add=True)

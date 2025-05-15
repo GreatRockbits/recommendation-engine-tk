@@ -23,4 +23,5 @@ urlpatterns = [
     path('search/', views.search_results, name='search_results'),
     path('random/', views.random_product, name='random_product'),
     path('product/<str:product_id>/', views.product_detail, name='product_detail'),
+    path('analytics/', views.recommendation_analytics, name='recommendation_analytics'),
 ]

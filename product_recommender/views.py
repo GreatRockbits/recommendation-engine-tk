@@ -4,8 +4,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
-from .models import Product, Summary, Review
+from django.db.models import Q, Avg, F
+from .models import Product, Summary, Review, RecommendationPerformance
 from .recommendation_engine.tfidf import tfidf_recommendations
 from .recommendation_engine.tfidf_reviews import tfidf_recommendations_from_reviews
 import random
@@ -117,6 +117,15 @@ def product_detail(request, product_id=None):
 
         reviews = product.review_set.all()
         reviews_page = _paginate_reviews(request, reviews)
+        num_reviews = reviews.count()  # Get the total number of reviews
+
+        # Save performance data
+        RecommendationPerformance.objects.create(
+            product_id=product,
+            summary_time=float(time_taken_summary.split(' ')[0]),  # Extract the float value
+            reviews_time=float(time_taken_reviews.split(' ')[0]),  # Extract the float value
+            num_reviews=num_reviews
+        )
 
         context = {
             'product': product,
@@ -136,3 +145,29 @@ def product_detail(request, product_id=None):
     except Exception as e:
         print(f"An unexpected error occurred in product_detail: {e}")
         return HttpResponseServerError("Internal Server Error")
+    
+
+def recommendation_analytics(request):
+    """Displays analytics on recommendation performance."""
+    performance_data = RecommendationPerformance.objects.all().select_related('product_id')
+
+    analytics = []
+    for data in performance_data:
+        time_saved = data.reviews_time - data.summary_time
+        analytics.append({
+            'product_name': data.product_id.name,
+            'summary_time': data.summary_time,
+            'reviews_time': data.reviews_time,
+            'num_reviews': data.num_reviews,
+            'time_saved': time_saved,
+        })
+
+    average_time_saved = RecommendationPerformance.objects.annotate(
+        time_saved=F('reviews_time') - F('summary_time')
+    ).aggregate(Avg('time_saved'))['time_saved__avg']
+
+    context = {
+        'analytics_data': analytics,
+        'average_time_saved': average_time_saved,
+    }
+    return render(request, 'recommendation_analytics.html', context)

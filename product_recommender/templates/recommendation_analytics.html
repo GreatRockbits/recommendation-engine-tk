@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recommendation Analytics</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+</head>
+<body>
+    <div class="container mx-auto mt-8">
+        <h1>Recommendation Performance Analytics</h1>
+
+        {% if average_time_saved is not None %}
+            <p class="lead">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
+        {% else %}
+            <p class="lead">No performance data available yet.</p>
+        {% endif %}
+
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Summary Time (s)</th>
+                    <th>Reviews Time (s)</th>
+                    <th>Number of Reviews</th>
+                    <th>Time Saved (s)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in analytics_data %}
+                <tr>
+                    <td>{{ data.product_name }}</td>
+                    <td>{{ data.summary_time|floatformat:4 }}</td>
+                    <td>{{ data.reviews_time|floatformat:4 }}</td>
+                    <td>{{ data.num_reviews }}</td>
+                    <td>{{ data.time_saved|floatformat:4 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No performance data recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
