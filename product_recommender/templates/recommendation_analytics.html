@@ -1,159 +1,295 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Recommendation Analytics</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .debug-info {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .chart-container {
+            height: 400px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mx-auto mt-8">
-        <h1>Recommendation Performance Analytics</h1>
+    <div class="container mx-auto mt-4">
+        <h1 class="mb-4">Recommendation Performance Analytics</h1>
 
         {% if average_time_saved is not None %}
-            <p class="lead">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
+            <div class="alert alert-info">
+                <p class="lead mb-0">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
+            </div>
         {% else %}
-            <p class="lead">No performance data available yet.</p>
+            <div class="alert alert-warning">
+                <p class="lead mb-0">No performance data available yet.</p>
+            </div>
         {% endif %}
 
-        <h2 class="mt-4">Summary Time vs. Reviews Time</h2>
-        <canvas id="timeComparisonChart" width="400" height="200"></canvas>
+        <!-- Debug Button -->
+        <button id="toggleDebug" class="btn btn-sm btn-secondary mb-3">Show Debug Info</button>
+        
+        <!-- Debug Information -->
+        <div id="debugInfo" class="debug-info">
+            <h4>Debug Information:</h4>
+            <div>
+                <strong>Raw product_names:</strong> {{ product_names }}
+            </div>
+            <div>
+                <strong>Raw summary_times:</strong> {{ summary_times }}
+            </div>
+            <div>
+                <strong>Raw reviews_times:</strong> {{ reviews_times }}
+            </div>
+            <div>
+                <strong>Raw time_saved_values:</strong> {{ time_saved_values }}
+            </div>
+            <div>
+                <strong>Raw review_counts:</strong> {{ review_counts }}
+            </div>
+            <div id="parsedData"></div>
+        </div>
 
-        <h2 class="mt-4">Time Saved vs. Number of Reviews</h2>
-        <canvas id="timeSavedReviewsChart" width="400" height="200"></canvas>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h4 mb-0">Summary Time vs. Reviews Time</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="timeComparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th>Product Name</th>
-                    <th>Summary Time (s)</th>
-                    <th>Reviews Time (s)</th>
-                    <th>Number of Reviews</th>
-                    <th>Time Saved (s)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for data in analytics_data %}
-                <tr>
-                    <td>{{ data.product_name }}</td>
-                    <td>{{ data.summary_time|floatformat:4 }}</td>
-                    <td>{{ data.reviews_time|floatformat:4 }}</td>
-                    <td>{{ data.num_reviews }}</td>
-                    <td>{{ data.time_saved|floatformat:4 }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5">No performance data recorded.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h2 class="h4 mb-0">Time Saved vs. Number of Reviews</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="timeSavedReviewsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h2 class="h4 mb-0">Performance Data Table</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Summary Time (s)</th>
+                                        <th>Reviews Time (s)</th>
+                                        <th>Number of Reviews</th>
+                                        <th>Time Saved (s)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for data in analytics_data %}
+                                    <tr>
+                                        <td>{{ data.product_name }}</td>
+                                        <td>{{ data.summary_time|floatformat:4 }}</td>
+                                        <td>{{ data.reviews_time|floatformat:4 }}</td>
+                                        <td>{{ data.num_reviews }}</td>
+                                        <td>{{ data.time_saved|floatformat:4 }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="5" class="text-center">No performance data recorded.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const productNames = JSON.parse('{{ product_names|safe }}');
-        const summaryTimes = JSON.parse('{{ summary_times|safe }}');
-        const reviewsTimes = JSON.parse('{{ reviews_times|safe }}');
-        const timeSavedValues = JSON.parse('{{ time_saved_values|safe }}');
-        const reviewCounts = JSON.parse('{{ review_counts|safe }}');
-
-        // Bar graph for Summary Time vs. Reviews Time
-        const timeComparisonCtx = document.getElementById('timeComparisonChart').getContext('2d');
-        const timeComparisonChart = new Chart(timeComparisonCtx, {
-            type: 'bar',
-            data: {
-                labels: productNames,
-                datasets: [{
-                    label: 'Summary Time (s)',
-                    data: summaryTimes,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Reviews Time (s)',
-                    data: reviewsTimes,
-                    backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Time (seconds)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Product'
-                        }
-                    }
-                }
+        // Debug toggle functionality
+        document.getElementById('toggleDebug').addEventListener('click', function() {
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo.style.display === 'block') {
+                debugInfo.style.display = 'none';
+                this.textContent = 'Show Debug Info';
+            } else {
+                debugInfo.style.display = 'block';
+                this.textContent = 'Hide Debug Info';
             }
         });
 
-        // Bar graph for Time Saved vs. Number of Reviews
-        const timeSavedReviewsCtx = document.getElementById('timeSavedReviewsChart').getContext('2d');
-        const timeSavedReviewsChart = new Chart(timeSavedReviewsCtx, {
-            type: 'bar',
-            data: {
-                labels: productNames,
-                datasets: [{
-                    label: 'Time Saved (s)',
-                    data: timeSavedValues,
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Number of Reviews',
-                    data: reviewCounts,
-                    backgroundColor: 'rgba(255, 206, 86, 0.7)', // Yellow
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1,
-                    yAxisID: 'y-axis-reviews' // Assign to a secondary y-axis
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Time Saved (seconds)'
-                        }
-                    },
-                    'y-axis-reviews': {
-                        type: 'linear',
-                        position: 'right',
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Reviews'
+        // Direct data access approach
+        // Create JavaScript arrays from the template variables
+        const productNames = [{% for name in product_names %}"{{ name|escapejs }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const summaryTimes = [{% for time in summary_times %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const reviewsTimes = [{% for time in reviews_times %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const timeSavedValues = [{% for time in time_saved_values %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const reviewCounts = [{% for count in review_counts %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+        // Add to debug info
+        document.getElementById('parsedData').innerHTML = `
+            <h5 class="mt-3">Parsed Data:</h5>
+            <div><strong>productNames:</strong> ${JSON.stringify(productNames)}</div>
+            <div><strong>summaryTimes:</strong> ${JSON.stringify(summaryTimes)}</div>
+            <div><strong>reviewsTimes:</strong> ${JSON.stringify(reviewsTimes)}</div>
+            <div><strong>timeSavedValues:</strong> ${JSON.stringify(timeSavedValues)}</div>
+            <div><strong>reviewCounts:</strong> ${JSON.stringify(reviewCounts)}</div>
+        `;
+
+        // Function to log errors
+        function logError(message, error) {
+            console.error(message, error);
+            const debugInfo = document.getElementById('debugInfo');
+            const errorDiv = document.createElement('div');
+            errorDiv.innerHTML = `<strong style="color: red">ERROR:</strong> ${message} - ${error.message || error}`;
+            debugInfo.appendChild(errorDiv);
+            debugInfo.style.display = 'block';
+            document.getElementById('toggleDebug').textContent = 'Hide Debug Info';
+        }
+
+        // Create the charts if we have data
+        try {
+            if (productNames.length > 0) {
+                // Chart 1: Summary Time vs. Reviews Time
+                try {
+                    const timeComparisonCtx = document.getElementById('timeComparisonChart').getContext('2d');
+                    new Chart(timeComparisonCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: productNames,
+                            datasets: [{
+                                label: 'Summary Time (s)',
+                                data: summaryTimes,
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }, {
+                                label: 'Reviews Time (s)',
+                                data: reviewsTimes,
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }]
                         },
-                        grid: {
-                            drawOnChartArea: false // Don't overlay grid lines
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                if (Number.isInteger(value)) {
-                                    return value;
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time (seconds)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Product'
+                                    }
                                 }
                             }
                         }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Product'
-                        }
-                    }
+                    });
+                } catch (error) {
+                    logError("Error creating time comparison chart", error);
                 }
+
+                // Chart 2: Time Saved vs. Number of Reviews
+                try {
+                    const timeSavedReviewsCtx = document.getElementById('timeSavedReviewsChart').getContext('2d');
+                    new Chart(timeSavedReviewsCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: productNames,
+                            datasets: [{
+                                label: 'Time Saved (s)',
+                                data: timeSavedValues,
+                                backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            }, {
+                                label: 'Number of Reviews',
+                                data: reviewCounts,
+                                backgroundColor: 'rgba(255, 206, 86, 0.7)', // Yellow
+                                borderColor: 'rgba(255, 206, 86, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y1' // Assign to a secondary y-axis
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Time Saved (seconds)'
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Reviews'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Product'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    logError("Error creating time saved vs reviews chart", error);
+                }
+            } else {
+                document.getElementById('parsedData').innerHTML += `
+                    <div style="color: red"><strong>Warning:</strong> No data available for charts</div>
+                `;
             }
-        });
+        } catch (error) {
+            logError("General chart error", error);
+        }
     </script>
 </body>
 </html>
