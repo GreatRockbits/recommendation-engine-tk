@@ -9,6 +9,7 @@ import time
 # Initialize the vectorizers outside the function for better performance
 positive_vectorizer = TfidfVectorizer(stop_words='english')
 negative_vectorizer = TfidfVectorizer(stop_words='english')
+PRODUCT_LIMIT = 5000
 
 def tfidf_recommendations(target_product):
     target_product_id = target_product.product_id
@@ -22,7 +23,7 @@ def tfidf_recommendations(target_product):
     all_products_with_summaries = Product.objects.filter(
         summary__positive_sentiment__isnull=False,
         summary__negative_sentiment__isnull=False
-    ).exclude(product_id=target_product_id)
+    ).exclude(product_id=target_product_id)[:PRODUCT_LIMIT]
 
     print(f"Number of all_products_with_summaries: {all_products_with_summaries.count()}")
 
