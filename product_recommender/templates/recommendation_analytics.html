@@ -6,6 +6,7 @@
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container mx-auto mt-8">
@@ -16,6 +17,12 @@
         {% else %}
             <p class="lead">No performance data available yet.</p>
         {% endif %}
+
+        <h2 class="mt-4">Summary Time vs. Reviews Time</h2>
+        <canvas id="timeComparisonChart" width="400" height="200"></canvas>
+
+        <h2 class="mt-4">Time Saved vs. Number of Reviews</h2>
+        <canvas id="timeSavedReviewsChart" width="400" height="200"></canvas>
 
         <table class="table mt-4">
             <thead>
@@ -43,8 +50,110 @@
         </table>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const productNames = JSON.parse('{{ product_names|safe }}');
+        const summaryTimes = JSON.parse('{{ summary_times|safe }}');
+        const reviewsTimes = JSON.parse('{{ reviews_times|safe }}');
+        const timeSavedValues = JSON.parse('{{ time_saved_values|safe }}');
+        const reviewCounts = JSON.parse('{{ review_counts|safe }}');
+
+        // Bar graph for Summary Time vs. Reviews Time
+        const timeComparisonCtx = document.getElementById('timeComparisonChart').getContext('2d');
+        const timeComparisonChart = new Chart(timeComparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Summary Time (s)',
+                    data: summaryTimes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Reviews Time (s)',
+                    data: reviewsTimes,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Product'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Bar graph for Time Saved vs. Number of Reviews
+        const timeSavedReviewsCtx = document.getElementById('timeSavedReviewsChart').getContext('2d');
+        const timeSavedReviewsChart = new Chart(timeSavedReviewsCtx, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    label: 'Time Saved (s)',
+                    data: timeSavedValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Number of Reviews',
+                    data: reviewCounts,
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)', // Yellow
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y-axis-reviews' // Assign to a secondary y-axis
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time Saved (seconds)'
+                        }
+                    },
+                    'y-axis-reviews': {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Reviews'
+                        },
+                        grid: {
+                            drawOnChartArea: false // Don't overlay grid lines
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (Number.isInteger(value)) {
+                                    return value;
+                                }
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Product'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

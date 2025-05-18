@@ -148,10 +148,16 @@ def product_detail(request, product_id=None):
     
 
 def recommendation_analytics(request):
-    """Displays analytics on recommendation performance."""
+    """Displays analytics on recommendation performance with bar graphs."""
     performance_data = RecommendationPerformance.objects.all().select_related('product_id')
 
     analytics = []
+    summary_times = []
+    reviews_times = []
+    time_saved_data = []
+    review_counts = []
+    product_names = []
+
     for data in performance_data:
         time_saved = data.reviews_time - data.summary_time
         analytics.append({
@@ -161,6 +167,11 @@ def recommendation_analytics(request):
             'num_reviews': data.num_reviews,
             'time_saved': time_saved,
         })
+        summary_times.append(data.summary_time)
+        reviews_times.append(data.reviews_time)
+        time_saved_data.append(time_saved)
+        review_counts.append(data.num_reviews)
+        product_names.append(data.product_id.name)
 
     average_time_saved = RecommendationPerformance.objects.annotate(
         time_saved=F('reviews_time') - F('summary_time')
@@ -169,5 +180,10 @@ def recommendation_analytics(request):
     context = {
         'analytics_data': analytics,
         'average_time_saved': average_time_saved,
+        'product_names': product_names,
+        'summary_times': summary_times,
+        'reviews_times': reviews_times,
+        'time_saved_values': time_saved_data,
+        'review_counts': review_counts,
     }
     return render(request, 'recommendation_analytics.html', context)
