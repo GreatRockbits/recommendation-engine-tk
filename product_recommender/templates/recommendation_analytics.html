@@ -37,10 +37,8 @@
             </div>
         {% endif %}
 
-        <!-- Debug Button -->
         <button id="toggleDebug" class="btn btn-sm btn-secondary mb-3">Show Debug Info</button>
-        
-        <!-- Debug Information -->
+
         <div id="debugInfo" class="debug-info">
             <h4>Debug Information:</h4>
             <div>
@@ -65,7 +63,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h2 class="h4 mb-0">Summary Time vs. Reviews Time</h2>
+                        <h2 class="h4 mb-0">Average Summary Time vs. Average Reviews Time</h2>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -150,6 +148,8 @@
         const reviewsTimes = [{% for time in reviews_times %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const timeSavedValues = [{% for time in time_saved_values %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const reviewCounts = [{% for count in review_counts %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const averageSummaryTime = {{ average_summary_time|floatformat:4 }};
+        const averageReviewsTime = {{ average_reviews_time|floatformat:4 }};
 
         // Add to debug info
         document.getElementById('parsedData').innerHTML = `
@@ -159,6 +159,8 @@
             <div><strong>reviewsTimes:</strong> ${JSON.stringify(reviewsTimes)}</div>
             <div><strong>timeSavedValues:</strong> ${JSON.stringify(timeSavedValues)}</div>
             <div><strong>reviewCounts:</strong> ${JSON.stringify(reviewCounts)}</div>
+            <div><strong>averageSummaryTime:</strong> ${averageSummaryTime}</div>
+            <div><strong>averageReviewsTime:</strong> ${averageReviewsTime}</div>
         `;
 
         // Function to log errors
@@ -175,22 +177,22 @@
         // Create the charts if we have data
         try {
             if (productNames.length > 0) {
-                // Chart 1: Summary Time vs. Reviews Time
+                // Chart 1: Average Summary Time vs. Average Reviews Time
                 try {
                     const timeComparisonCtx = document.getElementById('timeComparisonChart').getContext('2d');
                     new Chart(timeComparisonCtx, {
                         type: 'bar',
                         data: {
-                            labels: productNames,
+                            labels: ['Average Time'], // Use a single label
                             datasets: [{
-                                label: 'Summary Time (s)',
-                                data: summaryTimes,
+                                label: 'Average Summary Time (s)',
+                                data: [averageSummaryTime], // Single data point
                                 backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
                                 borderColor: 'rgba(54, 162, 235, 1)',
                                 borderWidth: 1
                             }, {
-                                label: 'Reviews Time (s)',
-                                data: reviewsTimes,
+                                label: 'Average Reviews Time (s)',
+                                data: [averageReviewsTime], // Single data point
                                 backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
                                 borderColor: 'rgba(255, 99, 132, 1)',
                                 borderWidth: 1
@@ -206,18 +208,12 @@
                                         display: true,
                                         text: 'Time (seconds)'
                                     }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Product'
-                                    }
                                 }
                             }
                         }
                     });
                 } catch (error) {
-                    logError("Error creating time comparison chart", error);
+                    logError("Error creating average time comparison chart", error);
                 }
 
                 // Chart 2: Time Saved vs. Number of Reviews

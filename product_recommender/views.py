@@ -149,11 +149,13 @@ def product_detail(request, product_id=None):
 
 def recommendation_analytics(request):
     """Displays analytics on recommendation performance with bar graphs."""
+    # Calculate the average summary time and average reviews time
+    average_summary_time = RecommendationPerformance.objects.aggregate(Avg('summary_time'))['summary_time__avg'] or 0
+    average_reviews_time = RecommendationPerformance.objects.aggregate(Avg('reviews_time'))['reviews_time__avg'] or 0
+
     performance_data = RecommendationPerformance.objects.all().select_related('product_id')
 
     analytics = []
-    summary_times = []
-    reviews_times = []
     time_saved_data = []
     review_counts = []
     product_names = []
@@ -167,8 +169,6 @@ def recommendation_analytics(request):
             'num_reviews': data.num_reviews,
             'time_saved': time_saved,
         })
-        summary_times.append(data.summary_time)
-        reviews_times.append(data.reviews_time)
         time_saved_data.append(time_saved)
         review_counts.append(data.num_reviews)
         product_names.append(data.product_id.name)
@@ -180,9 +180,9 @@ def recommendation_analytics(request):
     context = {
         'analytics_data': analytics,
         'average_time_saved': average_time_saved,
+        'average_summary_time': average_summary_time,
+        'average_reviews_time': average_reviews_time,
         'product_names': product_names,
-        'summary_times': summary_times,
-        'reviews_times': reviews_times,
         'time_saved_values': time_saved_data,
         'review_counts': review_counts,
     }
