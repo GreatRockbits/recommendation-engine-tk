@@ -56,6 +56,10 @@
             <div>
                 <strong>Raw review_counts:</strong> {{ review_counts }}
             </div>
+            <div><strong>review_numbers:</strong> {{ review_numbers }}</div>
+            <div><strong>average_time_saved_by_review:</strong> {{ average_time_saved_by_review }}</div>
+            <div><strong>averageSummaryTime:</strong> {{ average_summary_time|floatformat:4 }}</div>
+            <div><strong>averageReviewsTime:</strong> {{ average_reviews_time|floatformat:4 }}</div>
             <div id="parsedData"></div>
         </div>
 
@@ -78,7 +82,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header bg-success text-white">
-                        <h2 class="h4 mb-0">Time Saved vs. Number of Reviews</h2>
+                        <h2 class="h4 mb-0">Average Time Saved vs. Number of Reviews</h2>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -150,6 +154,8 @@
         const reviewCounts = [{% for count in review_counts %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const averageSummaryTime = {{ average_summary_time|floatformat:4 }};
         const averageReviewsTime = {{ average_reviews_time|floatformat:4 }};
+        const reviewNumbers = [{% for count in review_numbers %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const averageTimeSavedByReview = [{% for time in average_time_saved_by_review %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
 
         // Add to debug info
         document.getElementById('parsedData').innerHTML = `
@@ -159,8 +165,11 @@
             <div><strong>reviewsTimes:</strong> ${JSON.stringify(reviewsTimes)}</div>
             <div><strong>timeSavedValues:</strong> ${JSON.stringify(timeSavedValues)}</div>
             <div><strong>reviewCounts:</strong> ${JSON.stringify(reviewCounts)}</div>
+            <div><strong>reviewNumbers:</strong> ${JSON.stringify(reviewNumbers)}</div>
+            <div><strong>averageTimeSavedByReview:</strong> ${JSON.stringify(averageTimeSavedByReview)}</div>
             <div><strong>averageSummaryTime:</strong> ${averageSummaryTime}</div>
             <div><strong>averageReviewsTime:</strong> ${averageReviewsTime}</div>
+            <div id="parsedData"></div>
         `;
 
         // Function to log errors
@@ -216,27 +225,19 @@
                     logError("Error creating average time comparison chart", error);
                 }
 
-                // Chart 2: Time Saved vs. Number of Reviews
+                // Chart 2: Average Time Saved vs. Number of Reviews
                 try {
                     const timeSavedReviewsCtx = document.getElementById('timeSavedReviewsChart').getContext('2d');
                     new Chart(timeSavedReviewsCtx, {
                         type: 'bar',
                         data: {
-                            labels: productNames,
+                            labels: reviewNumbers, // Number of reviews on the x-axis
                             datasets: [{
-                                label: 'Time Saved (s)',
-                                data: timeSavedValues,
+                                label: 'Average Time Saved (s)',
+                                data: averageTimeSavedByReview, // Average time saved on the y-axis
                                 backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
                                 borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y'
-                            }, {
-                                label: 'Number of Reviews',
-                                data: reviewCounts,
-                                backgroundColor: 'rgba(255, 206, 86, 0.7)', // Yellow
-                                borderColor: 'rgba(255, 206, 86, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y1' // Assign to a secondary y-axis
+                                borderWidth: 1
                             }]
                         },
                         options: {
@@ -244,39 +245,26 @@
                             maintainAspectRatio: false,
                             scales: {
                                 y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Time Saved (seconds)'
-                                    }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Reviews'
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false
+                                        text: 'Average Time Saved (seconds)'
                                     }
                                 },
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Product'
+                                        text: 'Number of Reviews'
+                                    },
+                                    ticks: {
+                                        stepSize: 1 // Ensure integer review counts are displayed
                                     }
                                 }
                             }
                         }
                     });
                 } catch (error) {
-                    logError("Error creating time saved vs reviews chart", error);
+                    logError("Error creating average time saved vs number of reviews chart", error);
                 }
             } else {
                 document.getElementById('parsedData').innerHTML += `

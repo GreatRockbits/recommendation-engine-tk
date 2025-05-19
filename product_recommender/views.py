@@ -10,6 +10,7 @@ from .recommendation_engine.tfidf import tfidf_recommendations
 from .recommendation_engine.tfidf_reviews import tfidf_recommendations_from_reviews
 import random
 import time
+from collections import defaultdict
 
 def homepage(request):
     """
@@ -160,8 +161,12 @@ def recommendation_analytics(request):
     review_counts = []
     product_names = []
 
+    # Aggregate time saved by the number of reviews
+    time_saved_by_review_count = defaultdict(list)
     for data in performance_data:
         time_saved = data.reviews_time - data.summary_time
+        time_saved_by_review_count[data.num_reviews].append(time_saved)
+
         analytics.append({
             'product_name': data.product_id.name,
             'summary_time': data.summary_time,
@@ -173,6 +178,16 @@ def recommendation_analytics(request):
         review_counts.append(data.num_reviews)
         product_names.append(data.product_id.name)
 
+    # Calculate the average time saved for each review count
+    average_time_saved_by_review_count = {
+        count: sum(times) / len(times)
+        for count, times in time_saved_by_review_count.items()
+    }
+
+    # Prepare data for the second chart
+    review_numbers = sorted(average_time_saved_by_review_count.keys())
+    average_time_saved_values = [average_time_saved_by_review_count[count] for count in review_numbers]
+
     average_time_saved = RecommendationPerformance.objects.annotate(
         time_saved=F('reviews_time') - F('summary_time')
     ).aggregate(Avg('time_saved'))['time_saved__avg']
@@ -183,7 +198,7 @@ def recommendation_analytics(request):
         'average_summary_time': average_summary_time,
         'average_reviews_time': average_reviews_time,
         'product_names': product_names,
-        'time_saved_values': time_saved_data,
-        'review_counts': review_counts,
+        'review_numbers': review_numbers,  # For the x-axis of the second chart
+        'average_time_saved_by_review': average_time_saved_values, # For the y-axis of the second chart
     }
     return render(request, 'recommendation_analytics.html', context)
