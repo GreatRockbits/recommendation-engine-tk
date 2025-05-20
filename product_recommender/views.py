@@ -11,6 +11,18 @@ from .recommendation_engine.tfidf_reviews import tfidf_recommendations_from_revi
 import random
 import time
 from collections import defaultdict
+import html
+
+# --- Helper Function for Unescaping ---
+def _unescape_product_name(product_name):
+    """
+    Unescapes HTML entities in a product name string.
+    Returns the unescaped string.
+    """
+    if product_name:
+        return html.unescape(product_name)
+    return product_name
+
 
 def homepage(request):
     """
@@ -26,6 +38,11 @@ def search_results(request):
     query = request.GET.get('q')
     if query:
         products = Product.objects.filter(Q(name__icontains=query) | Q(product_id__icontains=query))
+        
+        # Unescape product names for display
+        for product in products:
+            product.name = _unescape_product_name(product.name)
+            
         context = {'products': products, 'query': query}
         return render(request, 'search_results.html', context)
     else:
@@ -50,18 +67,21 @@ def random_product(request):
 def _get_product(product_id=None):
     """Fetches a product instance, either by ID or a random one."""
     if product_id:
-        return get_object_or_404(Product, product_id=product_id)
+        product = get_object_or_404(Product, product_id=product_id)
     else:
         try:
             product = Product.objects.order_by('?').first()
             if product is None:
                 raise Product.DoesNotExist("No products found.")
-            return product
         except Product.DoesNotExist as e:
             raise HttpResponseNotFound(str(e))
         except Exception as e:
             print(f"Error selecting random product: {e}")
             raise HttpResponseServerError("Internal Server Error")
+    
+    # Unescape the product name if found
+    product.name = _unescape_product_name(product.name)
+    return product
 
 def _get_recommendations_from_summary(product):
     """Gets recommendations using the AI summary TF-IDF."""
@@ -69,6 +89,11 @@ def _get_recommendations_from_summary(product):
     recommendations = tfidf_recommendations(product)[:4]
     end_time = time.time()
     time_taken = end_time - start_time
+    
+    # Unescape product names in recommendations
+    for rec in recommendations:
+        rec.name = _unescape_product_name(rec.name)
+        
     return recommendations, "{:.4f} seconds".format(time_taken)
 
 def _get_recommendations_from_reviews(product):
@@ -77,6 +102,11 @@ def _get_recommendations_from_reviews(product):
     recommendations = tfidf_recommendations_from_reviews(product)[:4]
     end_time = time.time()
     time_taken = end_time - start_time
+    
+    # Unescape product names in recommendations
+    for rec in recommendations:
+        rec.name = _unescape_product_name(rec.name)
+        
     return recommendations, "{:.4f} seconds".format(time_taken)
 
 def _get_product_summary(product):
@@ -167,8 +197,11 @@ def recommendation_analytics(request):
         time_saved = data.reviews_time - data.summary_time
         time_saved_by_review_count[data.num_reviews].append(time_saved)
 
+        # Unescape product name for display
+        product_name = _unescape_product_name(data.product_id.name)
+        
         analytics.append({
-            'product_name': data.product_id.name,
+            'product_name': product_name,
             'summary_time': data.summary_time,
             'reviews_time': data.reviews_time,
             'num_reviews': data.num_reviews,
@@ -176,7 +209,7 @@ def recommendation_analytics(request):
         })
         time_saved_data.append(time_saved)
         review_counts.append(data.num_reviews)
-        product_names.append(data.product_id.name)
+        product_names.append(product_name)
 
     # Calculate the average time saved for each review count
     average_time_saved_by_review_count = {

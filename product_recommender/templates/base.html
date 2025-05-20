@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     {# You can add project-specific CSS here if needed #}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    {% block extra_css %}{% endblock %} {# NEW BLOCK FOR PAGE-SPECIFIC CSS #}
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
 
@@ -38,7 +38,7 @@
 
     <div class="container mt-4">
         {% block content %}
-            {# Content from child templates will go here #}
+            {# Content from child templates #}
         {% endblock %}
     </div>
 
