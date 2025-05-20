@@ -1,27 +1,53 @@
 {% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Product Search</title>
-  </head>
+{% block title %}Product Search{% endblock %}
 
-  {% block content %}
-  <body>
-    <h1>Search for a Product</h1>
-    <form method="get" action="{% url 'search_results' %}">
-      <input type="text" name="q" placeholder="Enter product name or ID" />
-      <button type="submit">Search</button>
-    </form>
-
-    <h2>Feeling Lucky?</h2>
-    <p><a href="{% url 'random_product' %}">Choose a Random Product</a></p>
-
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-lg mb-5">
+      <div class="card-body text-center p-5">
+        <h1 class="display-4 mb-3">Search for a Product</h1>
+        <p class="lead text-muted mb-4">Find the perfect product based on your preferences</p>
+        
+        <form method="get" action="{% url 'search_results' %}" class="mb-5">
+          <div class="input-group mb-3">
+            <input 
+              type="text" 
+              name="q" 
+              class="form-control form-control-lg" 
+              placeholder="Enter product name or ID" 
+              aria-label="Product search" 
+              required
+            >
+            <div class="input-group-append">
+              <button class="btn btn-primary btn-lg" type="submit">
+                Search
+              </button>
+            </div>
+          </div>
+        </form>
+        
+        <hr class="my-4">
+        
+        <h2 class="h3 mb-3">Feeling Lucky?</h2>
+        <a href="{% url 'random_product' %}" class="btn btn-success btn-lg px-4 py-2">
+          Choose a Random Product
+        </a>
+      </div>
+    </div>
+    
     {% if message %}
-    <p style="color: green">{{ message }}</p>
-    {% endif %} {% if error %}
-    <p style="color: red">{{ error }}</p>
+    <div class="alert alert-success" role="alert">
+      {{ message }}
+    </div>
     {% endif %}
-  </body>
-</html>
+    
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+      {{ error }}
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
