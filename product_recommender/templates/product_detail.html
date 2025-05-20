@@ -1,153 +1,195 @@
 {% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Product Detail</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-  </head>
+{% block title %}{{ product.name }} | Product Detail{% endblock %}
 
-  {% block content %}
-
-  <body>
-    <div class="container mx-auto mt-8">
-      <h1>Product Details</h1>
-      <div class="card mb-5 mt-4">
-        <div class="row no-gutters">
-          <div class="col-md-4">
-            <img
-              src="{{ product.image_url }}"
-              class="card-img"
-              alt="{{ product.name }}"
-              style="max-width: 800; max-height: 600; width: auto; height: auto; padding: 20px;"
-            />
-          </div>
-          <div class="col-md-8">
-            <div class="card-body">
-              <h3 class="card-title">{{ product.name }}</h5>
-              <p class="card-text">Price: ${{ product.price }}</p>
-              <p class="card-text">
-                <strong>AI Generated Summary of Positive Sentiment:</strong> {{ positive_sentiment }}
-              </p>
-              <p class="card-text">
-                <strong>AI Generated Summary of Negative Sentiment:</strong> {{ negative_sentiment }}
-              </p>
-            </div>
-          </div>
-        </div>
+{% block content %}
+<div class="mb-5">
+  <!-- Product Header -->
+  <h1 class="mb-4">Product Details</h1>
+  
+  <!-- Main Product Card -->
+  <div class="card mb-5 shadow">
+    <div class="row no-gutters">
+      <div class="col-md-4 bg-light d-flex align-items-center justify-content-center">
+        <img
+          src="{{ product.image_url }}"
+          class="img-fluid p-4"
+          alt="{{ product.name }}"
+          style="max-height: 300px; object-fit: contain;"
+        />
       </div>
-
-      <h2>Recommended Products (Based on AI Summary)</h2>
-      <p class="text-muted">Time taken: {{ time_taken_summary }}</p>
-      <div class="row">
-        {% for recommendation in recommendations_from_summary %}
-        <div class="col-md-3 mb-3">
-          <div class="card">
-            <a
-              href="{% url 'product_detail' product_id=recommendation.product_id %}"
-            >
-              <img
-                src="{{ recommendation.image_url }}"
-                class="card-img-top"
-                alt="{{ recommendation.name }}"
-                style="max-width: 100; max-height: 75; padding: 20px;"
-              />
-            </a>
-            <div class="card-body">
-              <h5 class="card-title">
-                <a
-                  href="{% url 'product_detail' product_id=recommendation.product_id %}"
-                  >{{ recommendation.name }}</a
-                >
-              </h5>
-              <p class="card-text">Price: ${{ recommendation.price }}</p>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="col-md-12">
-          <p>No recommendations based on AI summary.</p>
-        </div>
-        {% endfor %}
-      </div>
-
-      <h2>Recommended Products (Based on Review Text)</h2>
-      <p class="text-muted">Time taken: {{ time_taken_reviews }}</p>
-      <div class="row">
-        {% for recommendation in recommendations_from_reviews %}
-        <div class="col-md-3 mb-3">
-          <div class="card">
-            <a
-              href="{% url 'product_detail' product_id=recommendation.product_id %}"
-            >
-              <img
-                src="{{ recommendation.image_url }}"
-                class="card-img-top"
-                alt="{{ recommendation.name }}"
-                style="max-width: 100; max-height: 75; padding: 20px;"
-              />
-            </a>
-            <div class="card-body">
-              <h5 class="card-title">
-                <a
-                  href="{% url 'product_detail' product_id=recommendation.product_id %}"
-                  >{{ recommendation.name }}</a
-                >
-              </h5>
-              <p class="card-text">Price: ${{ recommendation.price }}</p>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="col-md-12">
-          <p>No recommendations based on review text.</p>
-        </div>
-        {% endfor %}
-      </div>
-
-      <h2>Reviews</h2>
-      {% for review in reviews_page %}
-      <div class="card mb-3">
+      <div class="col-md-8">
         <div class="card-body">
-          <p>{{ review.review_text|default:"No review text" }}</p>
+          <h2 class="card-title h3 mb-3">{{ product.name }}</h2>
+          <p class="card-text h5 text-primary mb-4">${{ product.price }}</p>
+          
+          <div class="card mb-3 border-success">
+            <div class="card-header bg-success text-white">
+              <strong>Positive Feedback Summary</strong>
+            </div>
+            <div class="card-body">
+              <p class="card-text">{{ positive_sentiment }}</p>
+            </div>
+          </div>
+          
+          <div class="card mb-0 border-danger">
+            <div class="card-header bg-danger text-white">
+              <strong>Negative Feedback Summary</strong>
+            </div>
+            <div class="card-body">
+              <p class="card-text">{{ negative_sentiment }}</p>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation Sections -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Recommended Based on AI Summary</h2>
+        <span class="badge badge-info p-2">Time: {{ time_taken_summary }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mb-5">
+    {% for recommendation in recommendations_from_summary %}
+    <div class="col-md-3 mb-4">
+      <div class="card h-100 shadow-sm hover-shadow">
+        <div class="bg-light text-center" style="height: 180px;">
+          <a href="{% url 'product_detail' product_id=recommendation.product_id %}">
+            <img
+              src="{{ recommendation.image_url }}"
+              class="card-img-top p-3"
+              alt="{{ recommendation.name }}"
+              style="max-height: 180px; object-fit: contain;"
+            />
+          </a>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title" style="height: 3rem; overflow: hidden;">
+            <a href="{% url 'product_detail' product_id=recommendation.product_id %}" class="text-decoration-none text-dark">
+              {{ recommendation.name }}
+            </a>
+          </h5>
+          <p class="card-text text-primary font-weight-bold">${{ recommendation.price }}</p>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-light">No recommendations based on AI summary.</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Recommended Based on Review Text</h2>
+        <span class="badge badge-info p-2">Time: {{ time_taken_reviews }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row mb-5">
+    {% for recommendation in recommendations_from_reviews %}
+    <div class="col-md-3 mb-4">
+      <div class="card h-100 shadow-sm hover-shadow">
+        <div class="bg-light text-center" style="height: 180px;">
+          <a href="{% url 'product_detail' product_id=recommendation.product_id %}">
+            <img
+              src="{{ recommendation.image_url }}"
+              class="card-img-top p-3"
+              alt="{{ recommendation.name }}"
+              style="max-height: 180px; object-fit: contain;"
+            />
+          </a>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title" style="height: 3rem; overflow: hidden;">
+            <a href="{% url 'product_detail' product_id=recommendation.product_id %}" class="text-decoration-none text-dark">
+              {{ recommendation.name }}
+            </a>
+          </h5>
+          <p class="card-text text-primary font-weight-bold">${{ recommendation.price }}</p>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-light">No recommendations based on review text.</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Reviews Section -->
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-dark text-white">
+      <h2 class="h4 mb-0">Customer Reviews</h2>
+    </div>
+    <div class="card-body">
+      {% for review in reviews_page %}
+      <div class="card mb-3 border-light">
+        <div class="card-body">
+          <p class="mb-0">{{ review.review_text|default:"No review text" }}</p>
+        </div>
+        {% if not forloop.last %}
+        <hr class="my-0">
+        {% endif %}
       </div>
       {% empty %}
-      <p>No reviews available for this product.</p>
+      <p class="text-muted">No reviews available for this product.</p>
       {% endfor %}
-
-      <nav aria-label="Page navigation">
-        <ul class="pagination">
+    </div>
+    
+    {% if reviews_page.has_previous or reviews_page.has_next %}
+    <div class="card-footer bg-white">
+      <nav aria-label="Review pagination">
+        <ul class="pagination justify-content-center mb-0">
           {% if reviews_page.has_previous %}
           <li class="page-item">
-            <a
-              class="page-link"
-              href="?page={{ reviews_page.previous_page_number }}"
-              >Previous</a
-            >
+            <a class="page-link" href="?page={{ reviews_page.previous_page_number }}">
+              <span aria-hidden="true">&laquo;</span> Previous
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link"><span aria-hidden="true">&laquo;</span> Previous</span>
           </li>
           {% endif %}
-          <li class="page-item {% if not reviews_page.has_previous and not reviews_page.has_next %}active{% endif %}">
-            <a class="page-link" href="#">{{ reviews_page.number }}</a>
+          
+          <li class="page-item active">
+            <span class="page-link">Page {{ reviews_page.number }} of {{ reviews_page.paginator.num_pages }}</span>
           </li>
+          
           {% if reviews_page.has_next %}
           <li class="page-item">
-            <a
-              class="page-link"
-              href="?page={{ reviews_page.next_page_number }}"
-              >Next</a
-            >
+            <a class="page-link" href="?page={{ reviews_page.next_page_number }}">
+              Next <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Next <span aria-hidden="true">&raquo;</span></span>
           </li>
           {% endif %}
         </ul>
       </nav>
     </div>
+    {% endif %}
+  </div>
+</div>
+
+{% block extra_css %}
+<style>
+  .hover-shadow:hover {
+    transition: all 0.3s ease;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  }
+</style>
 {% endblock %}
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  </body>
-</html>
+{% endblock %}
