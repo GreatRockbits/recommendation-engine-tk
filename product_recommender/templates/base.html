@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Product Recommender{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    {# You can add project-specific CSS here if needed #}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %} {# NEW BLOCK FOR PAGE-SPECIFIC CSS #}
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="{% url 'homepage' %}">Product Recommender</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item {% if request.resolver_match.url_name == 'homepage' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'homepage' %}">Home</a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'random_product' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'random_product' %}">Random Product</a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'recommendation_analytics' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'recommendation_analytics' %}">Analytics</a>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0" action="{% url 'search_results' %}" method="get">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search products" aria-label="Search" name="q">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}
+            {# Content from child templates will go here #}
+        {% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {% block extra_js %}{% endblock %} {# Block for page-specific JavaScript #}
+
+</body>
+</html>

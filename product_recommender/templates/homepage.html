@@ -1,8 +1,12 @@
+{% extends 'base.html' %}
+
 <!DOCTYPE html>
 <html>
   <head>
     <title>Product Search</title>
   </head>
+
+  {% block content %}
   <body>
     <h1>Search for a Product</h1>
     <form method="get" action="{% url 'search_results' %}">
@@ -20,3 +24,4 @@
     {% endif %}
   </body>
 </html>
+{% endblock %}

@@ -1,10 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Recommendation Analytics</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends 'base.html' %}
+
+{% block title %}Recommendation Analytics{% endblock %}
+
+{% block extra_css %}
     <style>
         .debug-info {
             background-color: #f8f9fa;
@@ -17,19 +15,20 @@
             display: none;
         }
         .chart-container {
-            height: 400px;
+            height: 400px; /* Or use a more responsive height */
             position: relative;
             margin-bottom: 2rem;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container mx-auto mt-4">
         <h1 class="mb-4">Recommendation Performance Analytics</h1>
 
         {% if average_time_saved is not None %}
             <div class="alert alert-info">
-                <p class="lead mb-0">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
+                <p class="lead mb-0">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong> (based on {{ total_performance_records }} data points)</p>
             </div>
         {% else %}
             <div class="alert alert-warning">
@@ -64,25 +63,22 @@
         </div>
 
         <div class="row mt-4">
-            <div class="col-md-12">
+            <div class="col-md-6"> {# Adjusted to col-md-6 for two columns #}
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         <h2 class="h4 mb-0">Average Summary Time vs. Average Reviews Time</h2>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
-                            <canvas id="timeComparisonChart"></canvas>
+                            <canvas id="averageTimeComparisonChart"></canvas> {# Changed ID for clarity #}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-12">
+            <div class="col-md-6"> {# Adjusted to col-md-6 for two columns #}
                 <div class="card">
                     <div class="card-header bg-success text-white">
-                        <h2 class="h4 mb-0">Average Time Saved vs. Number of Reviews</h2>
+                        <h2 class="h4 mb-0">Time Saved vs. Number of Reviews (Per Product)</h2>
                     </div>
                     <div class="card-body">
                         <div class="chart-container">
@@ -131,7 +127,10 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Debug toggle functionality
         document.getElementById('toggleDebug').addEventListener('click', function() {
@@ -152,12 +151,17 @@
         const reviewsTimes = [{% for time in reviews_times %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const timeSavedValues = [{% for time in time_saved_values %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const reviewCounts = [{% for count in review_counts %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
-        const averageSummaryTime = {{ average_summary_time|floatformat:4 }};
-        const averageReviewsTime = {{ average_reviews_time|floatformat:4 }};
+
+        // For the *aggregated* chart, get these directly from the context
+        const averageSummaryTime = parseFloat('{{ average_summary_time|default:0 }}');
+        const averageReviewsTime = parseFloat('{{ average_reviews_time|default:0 }}');
+
+        // You'll need to ensure these are passed from your Django view:
         const reviewNumbers = [{% for count in review_numbers %}{{ count }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         const averageTimeSavedByReview = [{% for time in average_time_saved_by_review %}{{ time|floatformat:4 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
 
-        // Add to debug info
+
+        // Add to debug info (update this to reflect the new variable names)
         document.getElementById('parsedData').innerHTML = `
             <h5 class="mt-3">Parsed Data:</h5>
             <div><strong>productNames:</strong> ${JSON.stringify(productNames)}</div>
@@ -169,7 +173,6 @@
             <div><strong>averageTimeSavedByReview:</strong> ${JSON.stringify(averageTimeSavedByReview)}</div>
             <div><strong>averageSummaryTime:</strong> ${averageSummaryTime}</div>
             <div><strong>averageReviewsTime:</strong> ${averageReviewsTime}</div>
-            <div id="parsedData"></div>
         `;
 
         // Function to log errors
@@ -185,14 +188,15 @@
 
         // Create the charts if we have data
         try {
-            if (productNames.length > 0) {
-                // Chart 1: Average Summary Time vs. Average Reviews Time
+            // Chart 1: Average Summary Time vs. Average Reviews Time
+            // This chart should always show if there's *any* data for averages
+            if (averageSummaryTime !== 0 || averageReviewsTime !== 0) {
                 try {
-                    const timeComparisonCtx = document.getElementById('timeComparisonChart').getContext('2d');
-                    new Chart(timeComparisonCtx, {
+                    const averageTimeComparisonCtx = document.getElementById('averageTimeComparisonChart').getContext('2d');
+                    new Chart(averageTimeComparisonCtx, {
                         type: 'bar',
                         data: {
-                            labels: ['Average Time'], // Use a single label
+                            labels: ['Average Time'], // Single label for clustered bars
                             datasets: [{
                                 label: 'Average Summary Time (s)',
                                 data: [averageSummaryTime], // Single data point
@@ -218,33 +222,52 @@
                                         text: 'Time (seconds)'
                                     }
                                 }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Average Recommendation Time'
+                                }
                             }
                         }
                     });
                 } catch (error) {
                     logError("Error creating average time comparison chart", error);
                 }
+            } else {
+                 document.getElementById('averageTimeComparisonChart').parentElement.innerHTML = '<div class="alert alert-warning text-center">No average time data available for chart.</div>';
+            }
 
-                // Chart 2: Average Time Saved vs. Number of Reviews
+
+            // Chart 2: Time Saved vs. Number of Reviews (Per Product)
+            // This chart needs productNames or reviewCounts to be non-empty
+            if (productNames.length > 0 || reviewCounts.length > 0) {
                 try {
                     const timeSavedReviewsCtx = document.getElementById('timeSavedReviewsChart').getContext('2d');
                     new Chart(timeSavedReviewsCtx, {
                         type: 'bar',
                         data: {
-                            labels: reviewNumbers, // Number of reviews on the x-axis
+                            labels: reviewNumbers, // Use reviewNumbers for x-axis as per your new requirement
                             datasets: [{
                                 label: 'Average Time Saved (s)',
-                                data: averageTimeSavedByReview, // Average time saved on the y-axis
+                                data: averageTimeSavedByReview, // Use averageTimeSavedByReview
                                 backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
                                 borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1
+                                borderWidth: 1,
+                                yAxisID: 'y-axis-time-saved' // Explicit ID for clarity
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             scales: {
-                                y: {
+                                'y-axis-time-saved': { // Use explicit yAxisID
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
                                     beginAtZero: true,
                                     title: {
                                         display: true,
@@ -257,8 +280,17 @@
                                         text: 'Number of Reviews'
                                     },
                                     ticks: {
-                                        stepSize: 1 // Ensure integer review counts are displayed
+                                        stepSize: 1
                                     }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Average Time Saved by Number of Reviews'
                                 }
                             }
                         }
@@ -267,13 +299,11 @@
                     logError("Error creating average time saved vs number of reviews chart", error);
                 }
             } else {
-                document.getElementById('parsedData').innerHTML += `
-                    <div style="color: red"><strong>Warning:</strong> No data available for charts</div>
-                `;
+                 document.getElementById('timeSavedReviewsChart').parentElement.innerHTML = '<div class="alert alert-warning text-center">No data available for chart.</div>';
             }
+
         } catch (error) {
-            logError("General chart error", error);
+            logError("General chart initialization error", error);
         }
     </script>
-</body>
-</html>
+{% endblock %}
