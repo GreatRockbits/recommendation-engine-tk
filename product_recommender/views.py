@@ -2,7 +2,7 @@
 # Also contains backend logic
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Avg, F
 from .models import Product, Summary, Review, RecommendationPerformance
@@ -135,38 +135,16 @@ def _paginate_reviews(request, reviews, reviews_per_page=5):
 
 def product_detail(request, product_id=None):
     """
-    Displays product details and recommendations from both TF-IDF approaches
-    with paginated reviews.
+    Displays basic product details. Recommendations and reviews are loaded via AJAX.
     """
     try:
         product = _get_product(product_id)
-
-        recommendations_from_summary_objects, time_taken_summary = _get_recommendations_from_summary(product)
-        recommendations_from_reviews_objects, time_taken_reviews = _get_recommendations_from_reviews(product)
-
         positive_sentiment, negative_sentiment = _get_product_summary(product)
-
-        reviews = product.review_set.all()
-        reviews_page = _paginate_reviews(request, reviews)
-        num_reviews = reviews.count()  # Get the total number of reviews
-
-        # Save performance data
-        RecommendationPerformance.objects.create(
-            product_id=product,
-            summary_time=float(time_taken_summary.split(' ')[0]),  # Extract the float value
-            reviews_time=float(time_taken_reviews.split(' ')[0]),  # Extract the float value
-            num_reviews=num_reviews
-        )
 
         context = {
             'product': product,
-            'recommendations_from_summary': recommendations_from_summary_objects,
-            'recommendations_from_reviews': recommendations_from_reviews_objects,
-            'time_taken_summary': time_taken_summary,
-            'time_taken_reviews': time_taken_reviews,
             'positive_sentiment': positive_sentiment,
             'negative_sentiment': negative_sentiment,
-            'reviews_page': reviews_page,
         }
 
         return render(request, 'product_detail.html', context)
@@ -176,7 +154,120 @@ def product_detail(request, product_id=None):
     except Exception as e:
         print(f"An unexpected error occurred in product_detail: {e}")
         return HttpResponseServerError("Internal Server Error")
-    
+
+
+# API Endpoints for AJAX loading
+def api_recommendations_summary(request, product_id):
+    """API endpoint for loading recommendations based on AI summary."""
+    try:
+        product = get_object_or_404(Product, product_id=product_id)
+        recommendations, time_taken = _get_recommendations_from_summary(product)
+        
+        # Convert recommendations to JSON-serializable format
+        recommendations_data = []
+        for rec in recommendations:
+            recommendations_data.append({
+                'product_id': rec.product_id,
+                'name': rec.name,
+                'price': str(rec.price),
+                'image_url': rec.image_url,
+            })
+        
+        return JsonResponse({
+            'recommendations': recommendations_data,
+            'time_taken': time_taken,
+        })
+    except Exception as e:
+        print(f"Error in api_recommendations_summary: {e}")
+        return JsonResponse({'error': 'Failed to load recommendations'}, status=500)
+
+
+def api_recommendations_reviews(request, product_id):
+    """API endpoint for loading recommendations based on review text."""
+    try:
+        product = get_object_or_404(Product, product_id=product_id)
+        recommendations, time_taken = _get_recommendations_from_reviews(product)
+        
+        # Convert recommendations to JSON-serializable format
+        recommendations_data = []
+        for rec in recommendations:
+            recommendations_data.append({
+                'product_id': rec.product_id,
+                'name': rec.name,
+                'price': str(rec.price),
+                'image_url': rec.image_url,
+            })
+        
+        # Save performance data after both recommendation types are generated
+        # We'll need to coordinate this with the summary API call
+        reviews = product.review_set.all()
+        num_reviews = reviews.count()
+        
+        # Get the summary time if it exists (this is a simplified approach)
+        # In a real scenario, you might want to store this in session or cache
+        summary_time_obj = RecommendationPerformance.objects.filter(
+            product_id=product
+        ).order_by('-id').first()
+        
+        if summary_time_obj:
+            # Update the existing record
+            summary_time_obj.reviews_time = float(time_taken.split(' ')[0])
+            summary_time_obj.save()
+        else:
+            # Create a new record (this shouldn't happen in normal flow)
+            RecommendationPerformance.objects.create(
+                product_id=product,
+                summary_time=0,  # Will be updated by summary API
+                reviews_time=float(time_taken.split(' ')[0]),
+                num_reviews=num_reviews
+            )
+        
+        return JsonResponse({
+            'recommendations': recommendations_data,
+            'time_taken': time_taken,
+        })
+    except Exception as e:
+        print(f"Error in api_recommendations_reviews: {e}")
+        return JsonResponse({'error': 'Failed to load recommendations'}, status=500)
+
+
+def api_reviews(request, product_id):
+    """API endpoint for loading paginated reviews."""
+    try:
+        product = get_object_or_404(Product, product_id=product_id)
+        reviews = product.review_set.all()
+        
+        # Pagination
+        paginator = Paginator(reviews, 5)  # 5 reviews per page
+        page = request.GET.get('page', 1)
+        
+        try:
+            reviews_page = paginator.page(page)
+        except PageNotAnInteger:
+            reviews_page = paginator.page(1)
+        except EmptyPage:
+            reviews_page = paginator.page(paginator.num_pages)
+        
+        # Convert reviews to JSON-serializable format
+        reviews_data = []
+        for review in reviews_page:
+            reviews_data.append({
+                'review_text': review.review_text or "No review text",
+            })
+        
+        return JsonResponse({
+            'reviews': reviews_data,
+            'has_previous': reviews_page.has_previous(),
+            'has_next': reviews_page.has_next(),
+            'previous_page_number': reviews_page.previous_page_number() if reviews_page.has_previous() else None,
+            'next_page_number': reviews_page.next_page_number() if reviews_page.has_next() else None,
+            'current_page': reviews_page.number,
+            'total_pages': paginator.num_pages,
+        })
+    except Exception as e:
+        print(f"Error in api_reviews: {e}")
+        return JsonResponse({'error': 'Failed to load reviews'}, status=500)
+
 
 def recommendation_analytics(request):
     """Displays analytics on recommendation performance with bar graphs."""
