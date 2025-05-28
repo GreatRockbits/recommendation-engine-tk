@@ -156,75 +156,34 @@ def product_detail(request, product_id=None):
         return HttpResponseServerError("Internal Server Error")
 
 
-# API Endpoints for AJAX loading
-def api_recommendations_summary(request, product_id):
-    """API endpoint for loading recommendations based on AI summary."""
+def api_recommendations_both(request, product_id):
+    """API endpoint for loading both types of recommendations."""
     try:
         product = get_object_or_404(Product, product_id=product_id)
-        recommendations, time_taken = _get_recommendations_from_summary(product)
         
-        # Convert recommendations to JSON-serializable format
-        recommendations_data = []
-        for rec in recommendations:
-            recommendations_data.append({
-                'product_id': rec.product_id,
-                'name': rec.name,
-                'price': str(rec.price),
-                'image_url': rec.image_url,
-            })
+        # Get both recommendation types
+        summary_recs, summary_time_str = _get_recommendations_from_summary(product)
+        reviews_recs, reviews_time_str = _get_recommendations_from_reviews(product)
         
+        # Parse times
+        summary_time = float(summary_time_str.split(' ')[0])
+        reviews_time = float(reviews_time_str.split(' ')[0])
+        
+        # Save performance data
+        num_reviews = product.review_set.count()
+        RecommendationPerformance.objects.create(
+            product_id=product,
+            summary_time=summary_time,
+            reviews_time=reviews_time,
+            num_reviews=num_reviews
+        )
+        
+        # Convert to JSON format...
         return JsonResponse({
-            'recommendations': recommendations_data,
-            'time_taken': time_taken,
-        })
-    except Exception as e:
-        print(f"Error in api_recommendations_summary: {e}")
-        return JsonResponse({'error': 'Failed to load recommendations'}, status=500)
-
-
-def api_recommendations_reviews(request, product_id):
-    """API endpoint for loading recommendations based on review text."""
-    try:
-        product = get_object_or_404(Product, product_id=product_id)
-        recommendations, time_taken = _get_recommendations_from_reviews(product)
-        
-        # Convert recommendations to JSON-serializable format
-        recommendations_data = []
-        for rec in recommendations:
-            recommendations_data.append({
-                'product_id': rec.product_id,
-                'name': rec.name,
-                'price': str(rec.price),
-                'image_url': rec.image_url,
-            })
-        
-        # Save performance data after both recommendation types are generated
-        # We'll need to coordinate this with the summary API call
-        reviews = product.review_set.all()
-        num_reviews = reviews.count()
-        
-        # Get the summary time if it exists (this is a simplified approach)
-        # In a real scenario, you might want to store this in session or cache
-        summary_time_obj = RecommendationPerformance.objects.filter(
-            product_id=product
-        ).order_by('-id').first()
-        
-        if summary_time_obj:
-            # Update the existing record
-            summary_time_obj.reviews_time = float(time_taken.split(' ')[0])
-            summary_time_obj.save()
-        else:
-            # Create a new record (this shouldn't happen in normal flow)
-            RecommendationPerformance.objects.create(
-                product_id=product,
-                summary_time=0,  # Will be updated by summary API
-                reviews_time=float(time_taken.split(' ')[0]),
-                num_reviews=num_reviews
-            )
-        
-        return JsonResponse({
-            'recommendations': recommendations_data,
-            'time_taken': time_taken,
+            'summary_recommendations': summary_data,
+            'reviews_recommendations': reviews_data,
+            'summary_time': summary_time_str,
+            'reviews_time': reviews_time_str,
         })
     except Exception as e:
         print(f"Error in api_recommendations_reviews: {e}")
@@ -269,60 +228,194 @@ def api_reviews(request, product_id):
         return JsonResponse({'error': 'Failed to load reviews'}, status=500)
 
 
-def recommendation_analytics(request):
-    """Displays analytics on recommendation performance with bar graphs."""
-    # Calculate the average summary time and average reviews time
-    average_summary_time = RecommendationPerformance.objects.aggregate(Avg('summary_time'))['summary_time__avg'] or 0
-    average_reviews_time = RecommendationPerformance.objects.aggregate(Avg('reviews_time'))['reviews_time__avg'] or 0
-
-    performance_data = RecommendationPerformance.objects.all().select_related('product_id')
-
-    analytics = []
-    time_saved_data = []
-    review_counts = []
-    product_names = []
-
-    # Aggregate time saved by the number of reviews
-    time_saved_by_review_count = defaultdict(list)
-    for data in performance_data:
-        time_saved = data.reviews_time - data.summary_time
-        time_saved_by_review_count[data.num_reviews].append(time_saved)
-
-        # Unescape product name for display
-        product_name = _unescape_product_name(data.product_id.name)
+def api_recommendations_both(request, product_id):
+    """API endpoint for loading both types of recommendations and saving performance data."""
+    try:
+        product = get_object_or_404(Product, product_id=product_id)
         
-        analytics.append({
-            'product_name': product_name,
-            'summary_time': data.summary_time,
-            'reviews_time': data.reviews_time,
-            'num_reviews': data.num_reviews,
-            'time_saved': time_saved,
+        # Get both recommendation types
+        summary_recs, summary_time_str = _get_recommendations_from_summary(product)
+        reviews_recs, reviews_time_str = _get_recommendations_from_reviews(product)
+        
+        # Parse times
+        summary_time = float(summary_time_str.split(' ')[0])
+        reviews_time = float(reviews_time_str.split(' ')[0])
+        
+        # Save performance data
+        num_reviews = product.review_set.count()
+        RecommendationPerformance.objects.create(
+            product_id=product,
+            summary_time=summary_time,
+            reviews_time=reviews_time,
+            num_reviews=num_reviews
+        )
+        
+        # Convert recommendations to JSON-serializable format
+        summary_data = []
+        for rec in summary_recs:
+            summary_data.append({
+                'product_id': rec.product_id,
+                'name': rec.name,
+                'price': str(rec.price),
+                'image_url': rec.image_url,
+            })
+        
+        reviews_data = []
+        for rec in reviews_recs:
+            reviews_data.append({
+                'product_id': rec.product_id,
+                'name': rec.name,
+                'price': str(rec.price),
+                'image_url': rec.image_url,
+            })
+        
+        return JsonResponse({
+            'summary_recommendations': summary_data,
+            'reviews_recommendations': reviews_data,
+            'summary_time': summary_time_str,
+            'reviews_time': reviews_time_str,
+            'time_saved': "{:.4f} seconds".format(reviews_time - summary_time),
+            'num_reviews': num_reviews,
         })
-        time_saved_data.append(time_saved)
-        review_counts.append(data.num_reviews)
-        product_names.append(product_name)
+        
+    except Exception as e:
+        print(f"Error in api_recommendations_both: {e}")
+        return JsonResponse({'error': 'Failed to load recommendations'}, status=500)
 
-    # Calculate the average time saved for each review count
-    average_time_saved_by_review_count = {
-        count: sum(times) / len(times)
-        for count, times in time_saved_by_review_count.items()
-    }
 
-    # Prepare data for the second chart
-    review_numbers = sorted(average_time_saved_by_review_count.keys())
-    average_time_saved_values = [average_time_saved_by_review_count[count] for count in review_numbers]
+def recommendation_analytics(request):
+    """
+    Displays analytics on recommendation performance with bar graphs.
+    Now optimized to work with the unified API approach.
+    """
+    try:
+        # Get performance data with related product information
+        performance_data = RecommendationPerformance.objects.all().select_related('product_id')
+        
+        if not performance_data.exists():
+            # Handle case where no performance data exists yet
+            context = {
+                'analytics_data': [],
+                'average_time_saved': 0,
+                'average_summary_time': 0,
+                'average_reviews_time': 0,
+                'product_names': [],
+                'review_numbers': [],
+                'average_time_saved_by_review': [],
+                'no_data': True,
+            }
+            return render(request, 'recommendation_analytics.html', context)
+        
+        # Calculate overall averages using database aggregation
+        averages = RecommendationPerformance.objects.aggregate(
+            avg_summary_time=Avg('summary_time'),
+            avg_reviews_time=Avg('reviews_time'),
+            avg_time_saved=Avg(F('reviews_time') - F('summary_time'))
+        )
+        
+        average_summary_time = averages['avg_summary_time'] or 0
+        average_reviews_time = averages['avg_reviews_time'] or 0
+        average_time_saved = averages['avg_time_saved'] or 0
+        
+        # Prepare data for charts and tables
+        analytics = []
+        product_names = []
+        time_saved_by_review_count = defaultdict(list)
+        
+        for data in performance_data:
+            time_saved = data.reviews_time - data.summary_time
+            
+            # Unescape product name for display
+            product_name = _unescape_product_name(data.product_id.name)
+            
+            analytics.append({
+                'product_name': product_name,
+                'product_id': data.product_id.product_id,
+                'summary_time': round(data.summary_time, 4),
+                'reviews_time': round(data.reviews_time, 4),
+                'num_reviews': data.num_reviews,
+                'time_saved': round(time_saved, 4),
+                'efficiency_ratio': round((time_saved / data.reviews_time) * 100, 1) if data.reviews_time > 0 else 0,
+            })
+            
+            product_names.append(product_name)
+            time_saved_by_review_count[data.num_reviews].append(time_saved)
+        
+        # Calculate average time saved by review count for the second chart
+        average_time_saved_by_review_count = {}
+        for review_count, time_saved_list in time_saved_by_review_count.items():
+            avg_time_saved = sum(time_saved_list) / len(time_saved_list)
+            average_time_saved_by_review_count[review_count] = round(avg_time_saved, 4)
+        
+        # Prepare data for charts
+        review_numbers = sorted(average_time_saved_by_review_count.keys())
+        average_time_saved_values = [
+            average_time_saved_by_review_count[count] for count in review_numbers
+        ]
+        
+        # Sort analytics by time saved (descending) for better display
+        analytics.sort(key=lambda x: x['time_saved'], reverse=True)
+        
+        # Additional statistics
+        total_products_analyzed = performance_data.count()
+        max_time_saved = max((item['time_saved'] for item in analytics), default=0)
+        min_time_saved = min((item['time_saved'] for item in analytics), default=0)
+        
+        context = {
+            'analytics_data': analytics,
+            'average_time_saved': round(average_time_saved, 4),
+            'average_summary_time': round(average_summary_time, 4),
+            'average_reviews_time': round(average_reviews_time, 4),
+            'product_names': product_names,
+            'review_numbers': review_numbers,
+            'average_time_saved_by_review': average_time_saved_values,
+            'total_products_analyzed': total_products_analyzed,
+            'max_time_saved': round(max_time_saved, 4),
+            'min_time_saved': round(min_time_saved, 4),
+            'no_data': False,
+        }
+        
+        return render(request, 'recommendation_analytics.html', context)
+        
+    except Exception as e:
+        print(f"Error in recommendation_analytics: {e}")
+        # Return empty context with error flag
+        context = {
+            'analytics_data': [],
+            'average_time_saved': 0,
+            'average_summary_time': 0,
+            'average_reviews_time': 0,
+            'product_names': [],
+            'review_numbers': [],
+            'average_time_saved_by_review': [],
+            'error': 'Failed to load analytics data',
+        }
+        return render(request, 'recommendation_analytics.html', context)
 
-    average_time_saved = RecommendationPerformance.objects.annotate(
-        time_saved=F('reviews_time') - F('summary_time')
-    ).aggregate(Avg('time_saved'))['time_saved__avg']
 
-    context = {
-        'analytics_data': analytics,
-        'average_time_saved': average_time_saved,
-        'average_summary_time': average_summary_time,
-        'average_reviews_time': average_reviews_time,
-        'product_names': product_names,
-        'review_numbers': review_numbers,  # For the x-axis of the second chart
-        'average_time_saved_by_review': average_time_saved_values, # For the y-axis of the second chart
-    }
-    return render(request, 'recommendation_analytics.html', context)
+# Optional: Clean up function to remove duplicate performance records
+def cleanup_duplicate_performance_records():
+    """
+    Utility function to clean up any duplicate RecommendationPerformance records
+    that might have been created by the old API structure.
+    Call this once after implementing the new unified API.
+    """
+    from django.db.models import Count
+    
+    # Find products with multiple performance records
+    duplicates = (RecommendationPerformance.objects
+                 .values('product_id')
+                 .annotate(count=Count('id'))
+                 .filter(count__gt=1))
+    
+    for duplicate in duplicates:
+        product_id = duplicate['product_id']
+        # Keep the most recent record, delete the rest
+        records = RecommendationPerformance.objects.filter(
+            product_id=product_id
+        ).order_by('-id')
+        
+        # Delete all but the first (most recent) record
+        records[1:].delete()
+    
+    print(f"Cleaned up {len(duplicates)} duplicate performance record groups")
