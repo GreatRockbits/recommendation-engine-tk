@@ -115,6 +115,7 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -173,6 +174,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
     const productId = '{{ product.product_id }}';
     
     // Load both recommendation types with a single API call
@@ -182,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadReviews(1);
     
     function loadRecommendations() {
+      console.log('loadRecommendations function called');
         fetch(`/api/recommendations/${productId}/`)
             .then(response => {
                 if (!response.ok) {
@@ -416,5 +419,4 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadRecommendations = loadRecommendations;
 });
 </script>
-{% endblock %}
 {% endblock %}

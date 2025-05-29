@@ -156,40 +156,6 @@ def product_detail(request, product_id=None):
         return HttpResponseServerError("Internal Server Error")
 
 
-def api_recommendations_both(request, product_id):
-    """API endpoint for loading both types of recommendations."""
-    try:
-        product = get_object_or_404(Product, product_id=product_id)
-        
-        # Get both recommendation types
-        summary_recs, summary_time_str = _get_recommendations_from_summary(product)
-        reviews_recs, reviews_time_str = _get_recommendations_from_reviews(product)
-        
-        # Parse times
-        summary_time = float(summary_time_str.split(' ')[0])
-        reviews_time = float(reviews_time_str.split(' ')[0])
-        
-        # Save performance data
-        num_reviews = product.review_set.count()
-        RecommendationPerformance.objects.create(
-            product_id=product,
-            summary_time=summary_time,
-            reviews_time=reviews_time,
-            num_reviews=num_reviews
-        )
-        
-        # Convert to JSON format...
-        return JsonResponse({
-            'summary_recommendations': summary_data,
-            'reviews_recommendations': reviews_data,
-            'summary_time': summary_time_str,
-            'reviews_time': reviews_time_str,
-        })
-    except Exception as e:
-        print(f"Error in api_recommendations_reviews: {e}")
-        return JsonResponse({'error': 'Failed to load recommendations'}, status=500)
-
-
 def api_reviews(request, product_id):
     """API endpoint for loading paginated reviews."""
     try:
@@ -230,6 +196,7 @@ def api_reviews(request, product_id):
 
 def api_recommendations_both(request, product_id):
     """API endpoint for loading both types of recommendations and saving performance data."""
+    print("api_recommendations_both has been fired")
     try:
         product = get_object_or_404(Product, product_id=product_id)
         
