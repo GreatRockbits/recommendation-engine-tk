@@ -24,15 +24,21 @@
 
 {% block content %}
     <div class="container mt-4">
-        <h1 class="mb-4">Recommendation Performance Analytics Across 5,000 Products</h1>
+        <h1 class="mb-4">Recommendation Performance Analytics Across {{ total_products_analyzed|default:"N/A" }} Products</h1>
 
-        {% if average_time_saved is not None %}
+        {% if not no_data and average_time_saved is not None %}
             <div class="alert alert-info">
-                <p class="lead mb-0">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong> (based on {{ total_performance_records }} data points)</p>
+                <p class="lead mb-1">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
+                <p class="lead mb-1">Average time saved percentage by using AI summaries: <strong>{{ average_time_saved_percentage|floatformat:2 }}%</strong></p>
+                <small>(Based on {{ total_performance_records }} data points)</small>
             </div>
-        {% else %}
+        {% elif no_data %}
             <div class="alert alert-warning">
                 <p class="lead mb-0">No performance data available yet.</p>
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                <p class="lead mb-0">Error loading analytics data. {{ error }}</p>
             </div>
         {% endif %}
 

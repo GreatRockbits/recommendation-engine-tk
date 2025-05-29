@@ -258,104 +258,151 @@ def recommendation_analytics(request):
     try:
         # Get performance data with related product information
         performance_data = RecommendationPerformance.objects.all().select_related('product_id')
-        
+        total_performance_records = performance_data.count() # Get total records for display
+
         if not performance_data.exists():
             # Handle case where no performance data exists yet
             context = {
                 'analytics_data': [],
                 'average_time_saved': 0,
+                'average_time_saved_percentage': 0,
                 'average_summary_time': 0,
                 'average_reviews_time': 0,
                 'product_names': [],
+                'summary_times': [], # Added for consistency with error block
+                'reviews_times': [], # Added for consistency with error block
+                'time_saved_values': [], # Added for consistency with error block
+                'review_counts': [], # Added for consistency with error block
                 'review_numbers': [],
                 'average_time_saved_by_review': [],
+                'total_performance_records': 0,
                 'no_data': True,
             }
             return render(request, 'recommendation_analytics.html', context)
-        
+
         # Calculate overall averages using database aggregation
         averages = RecommendationPerformance.objects.aggregate(
             avg_summary_time=Avg('summary_time'),
             avg_reviews_time=Avg('reviews_time'),
             avg_time_saved=Avg(F('reviews_time') - F('summary_time'))
         )
-        
+
         average_summary_time = averages['avg_summary_time'] or 0
         average_reviews_time = averages['avg_reviews_time'] or 0
         average_time_saved = averages['avg_time_saved'] or 0
-        
+
+        # Calculate average time saved percentage
+        if average_reviews_time > 0:
+            average_time_saved_percentage = (average_time_saved / average_reviews_time) * 100
+        else:
+            average_time_saved_percentage = 0
+
         # Prepare data for charts and tables
         analytics = []
-        product_names = []
+        product_names_list = [] # Renamed to avoid conflict with 'product_names' in context for JS
+        summary_times_list = []
+        reviews_times_list = []
+        time_saved_values_list = []
+        review_counts_list = []
         time_saved_by_review_count = defaultdict(list)
-        
+
         for data in performance_data:
             time_saved = data.reviews_time - data.summary_time
-            
-            # Unescape product name for display
-            product_name = _unescape_product_name(data.product_id.name)
+            # Ensure product_id and its name attribute exist
+            product_name = "Unknown Product"
+            if data.product_id and hasattr(data.product_id, 'name'):
+                 product_name = _unescape_product_name(data.product_id.name)
             
             analytics.append({
                 'product_name': product_name,
-                'product_id': data.product_id.product_id,
+                'product_id': data.product_id.product_id if data.product_id else "N/A",
                 'summary_time': round(data.summary_time, 4),
                 'reviews_time': round(data.reviews_time, 4),
                 'num_reviews': data.num_reviews,
                 'time_saved': round(time_saved, 4),
                 'efficiency_ratio': round((time_saved / data.reviews_time) * 100, 1) if data.reviews_time > 0 else 0,
             })
-            
-            product_names.append(product_name)
+
+            # These lists are for the debug section and match the template's expectation
+            product_names_list.append(product_name)
+            summary_times_list.append(data.summary_time)
+            reviews_times_list.append(data.reviews_time)
+            time_saved_values_list.append(time_saved)
+            review_counts_list.append(data.num_reviews)
+
             time_saved_by_review_count[data.num_reviews].append(time_saved)
-        
+
         # Calculate average time saved by review count for the second chart
-        average_time_saved_by_review_count = {}
-        for review_count, time_saved_list in time_saved_by_review_count.items():
-            avg_time_saved = sum(time_saved_list) / len(time_saved_list)
-            average_time_saved_by_review_count[review_count] = round(avg_time_saved, 4)
-        
+        average_time_saved_by_review_data = {} # Renamed
+        for review_count_key, time_saved_list_val in time_saved_by_review_count.items():
+            avg_time_saved_for_key = sum(time_saved_list_val) / len(time_saved_list_val)
+            average_time_saved_by_review_data[review_count_key] = round(avg_time_saved_for_key, 4)
+
         # Prepare data for charts
-        review_numbers = sorted(average_time_saved_by_review_count.keys())
-        average_time_saved_values = [
-            average_time_saved_by_review_count[count] for count in review_numbers
+        # 'review_numbers' should be the keys from average_time_saved_by_review_data, sorted
+        chart_review_numbers = sorted(average_time_saved_by_review_data.keys())
+        # 'average_time_saved_by_review' should be the corresponding values
+        chart_average_time_saved_values = [
+            average_time_saved_by_review_data[count] for count in chart_review_numbers
         ]
-        
+
         # Sort analytics by time saved (descending) for better display
         analytics.sort(key=lambda x: x['time_saved'], reverse=True)
-        
+
         # Additional statistics
-        total_products_analyzed = performance_data.count()
+        total_products_analyzed = total_performance_records # Already calculated
         max_time_saved = max((item['time_saved'] for item in analytics), default=0)
         min_time_saved = min((item['time_saved'] for item in analytics), default=0)
-        
+
         context = {
             'analytics_data': analytics,
             'average_time_saved': round(average_time_saved, 4),
-            'average_summary_time': round(average_summary_time, 4),
-            'average_reviews_time': round(average_reviews_time, 4),
-            'product_names': product_names,
-            'review_numbers': review_numbers,
-            'average_time_saved_by_review': average_time_saved_values,
+            'average_time_saved_percentage': round(average_time_saved_percentage, 2),
+            'average_summary_time': round(average_summary_time, 4), # For chart 1 JS
+            'average_reviews_time': round(average_reviews_time, 4), # For chart 1 JS
+            'total_performance_records': total_performance_records,
+
+            # Data for debug info and JS parsing (raw lists from all performance data)
+            'product_names': product_names_list,
+            'summary_times': summary_times_list,
+            'reviews_times': reviews_times_list,
+            'time_saved_values': time_saved_values_list,
+            'review_counts': review_counts_list, # List of all review counts (can have duplicates)
+
+            # Data for charts
+            'review_numbers': chart_review_numbers, # Unique sorted review counts for x-axis of chart 2
+            'average_time_saved_by_review': chart_average_time_saved_values, # Corresponding y-axis for chart 2
+
             'total_products_analyzed': total_products_analyzed,
             'max_time_saved': round(max_time_saved, 4),
             'min_time_saved': round(min_time_saved, 4),
             'no_data': False,
         }
-        
+
         return render(request, 'recommendation_analytics.html', context)
-        
+
     except Exception as e:
-        print(f"Error in recommendation_analytics: {e}")
+        print(f"Error in recommendation_analytics: {e}") # Log the actual error
         # Return empty context with error flag
         context = {
             'analytics_data': [],
             'average_time_saved': 0,
+            'average_time_saved_percentage': 0,
             'average_summary_time': 0,
             'average_reviews_time': 0,
             'product_names': [],
+            'summary_times': [],
+            'reviews_times': [],
+            'time_saved_values': [],
+            'review_counts': [],
             'review_numbers': [],
             'average_time_saved_by_review': [],
-            'error': 'Failed to load analytics data',
+            'total_performance_records': 0,
+            'total_products_analyzed': 0,
+            'max_time_saved': 0,
+            'min_time_saved': 0,
+            'no_data': True, # Indicate no data due to error
+            'error': f'Failed to load analytics data: {str(e)}', # Pass error message
         }
         return render(request, 'recommendation_analytics.html', context)
 
