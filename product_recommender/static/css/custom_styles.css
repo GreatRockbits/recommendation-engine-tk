@@ -1,5 +1,5 @@
 /* Import Epilogue font */
-@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@300&display=swap');
 
 /* Custom color scheme variables */
 :root {
@@ -87,13 +87,13 @@ h2, h4, h5 {
     color: var(--light-grey);
 }
 
-.btn-primary {
+.btn-primary, .btn-success {
     background-color: var(--orange);
     border-color: var(--orange);
     color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-success:hover {
     background-color: #d63d28;
     border-color: #d63d28;
     color: white;
@@ -110,6 +110,7 @@ h2, h4, h5 {
 .card-header {
     border-radius: 0.5rem 0.5rem 0 0 !important;
     border-bottom: none;
+    font-weight: 250;
 }
 
 .card-header.bg-primary {
@@ -250,4 +251,20 @@ small {
 
 .border-orange {
     border-color: var(--orange) !important;
+}
+
+/* Fade in */
+@keyframes fadeInAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card.shadow-lg {
+  animation: fadeInAnimation 1s ease-out forwards;
 }
