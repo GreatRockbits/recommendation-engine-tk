@@ -386,6 +386,6 @@ small {
 }
 .pagination .page-item.disabled .page-link {
     background-color: var(--darkish-grey);
-    color: var(--mid-grey);
+    color: white;
     border-color: var(--mid-grey);
 }

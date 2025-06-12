@@ -17,7 +17,7 @@
 
 {% block content %}
     <div class="container mt-5 pb-5">
-        <h1 class="mb-5">Recommendation Performance Analytics Across {{ total_products_analyzed|default:"N/A" }} Products</h1>
+        <h1 class="mb-5">Recommendation Performance Analytics Across {{ total_products_analyzed|default:"N/A" }} Page Loads</h1>
 
         {% if not no_data and average_time_saved is not None %}
             <div class="alert alert-info mb-3">
