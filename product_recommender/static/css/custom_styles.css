@@ -1,0 +1,252 @@
+/* Import Epilogue font */
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&display=swap');
+
+/* Custom color scheme variables */
+:root {
+    --orange: #EC4C36;
+    --darkish-grey: #4A4748;
+    --very-dark-grey: #1D1A1A;
+    --mid-grey: #646464;
+    --light-grey: #F3F3F3;
+}
+
+body {
+    background-color: var(--very-dark-grey);
+    color: var(--light-grey);
+    font-family: 'Epilogue', sans-serif;
+}
+
+.container {
+    background-color: var(--very-dark-grey);
+}
+
+h1 {
+    color: var(--orange);
+    font-weight: 250;
+    font-family: 'Epilogue', sans-serif;
+}
+
+h2, h4, h5 {
+    font-family: 'Epilogue', sans-serif;
+    font-weight: 250;
+}
+
+.debug-info {
+    background-color: var(--darkish-grey);
+    border: 1px solid var(--mid-grey);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+    display: none;
+    color: var(--light-grey);
+}
+
+.chart-container {
+    height: 400px;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+/* Alert styles */
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+}
+
+.alert-info {
+    background-color: var(--darkish-grey);
+    color: var(--light-grey);
+    border-left: 4px solid var(--orange);
+}
+
+.alert-warning {
+    background-color: var(--mid-grey);
+    color: var(--light-grey);
+    border-left: 4px solid var(--orange);
+}
+
+.alert-danger {
+    background-color: var(--darkish-grey);
+    color: var(--light-grey);
+    border-left: 4px solid var(--orange);
+}
+
+/* Button styles */
+.btn-secondary {
+    background-color: var(--mid-grey);
+    border-color: var(--mid-grey);
+    color: var(--light-grey);
+}
+
+.btn-secondary:hover {
+    background-color: var(--darkish-grey);
+    border-color: var(--darkish-grey);
+    color: var(--light-grey);
+}
+
+.btn-primary {
+    background-color: var(--orange);
+    border-color: var(--orange);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #d63d28;
+    border-color: #d63d28;
+    color: white;
+}
+
+/* Card styles */
+.card {
+    background-color: var(--light-grey);
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    border-bottom: none;
+}
+
+.card-header.bg-primary {
+    background-color: var(--orange) !important;
+    color: white;
+}
+
+.card-header.bg-success {
+    background-color: var(--darkish-grey) !important;
+    color: var(--light-grey);
+}
+
+.card-header.bg-secondary {
+    background-color: var(--mid-grey) !important;
+    color: var(--light-grey);
+}
+
+.card-body {
+    background-color: var(--light-grey);
+    color: var(--very-dark-grey);
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Table styles */
+.table {
+    background-color: var(--light-grey);
+    color: var(--very-dark-grey);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(74, 71, 72, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(236, 76, 54, 0.1);
+}
+
+.thead-dark th {
+    background-color: var(--very-dark-grey);
+    color: var(--light-grey);
+    border-color: var(--mid-grey);
+}
+
+.table td, .table th {
+    border-color: var(--mid-grey);
+}
+
+/* Debug info specific styles */
+.debug-info h4 {
+    color: var(--orange);
+    margin-bottom: 1rem;
+}
+
+.debug-info h5 {
+    color: var(--orange);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.debug-info strong {
+    color: var(--light-grey);
+}
+
+.debug-info div {
+    margin-bottom: 0.5rem;
+}
+
+/* Lead text styling */
+.lead {
+    color: var(--light-grey);
+}
+
+.lead strong {
+    color: var(--orange);
+}
+
+/* Small text styling */
+small {
+    color: rgba(243, 243, 243, 0.8);
+}
+
+/* Text center styling for empty states */
+.text-center {
+    color: var(--mid-grey);
+}
+
+/* Form styles */
+.form-control {
+    background-color: var(--light-grey);
+    border: 1px solid var(--mid-grey);
+    color: var(--very-dark-grey);
+}
+
+.form-control:focus {
+    background-color: var(--light-grey);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 0.2rem rgba(236, 76, 54, 0.25);
+    color: var(--very-dark-grey);
+}
+
+.form-label {
+    color: var(--light-grey);
+    font-weight: 250;
+}
+
+/* Navigation styles */
+.navbar {
+    background-color: var(--very-dark-grey) !important;
+    border-bottom: 2px solid var(--orange);
+}
+
+.navbar-brand {
+    color: var(--orange) !important;
+    font-weight: 250;
+}
+
+.navbar-nav .nav-link {
+    color: var(--light-grey) !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--orange) !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--orange) !important;
+    font-weight: 250;
+}
+
+/* Utility classes */
+.text-orange {
+    color: var(--orange) !important;
+}
+
+.bg-orange {
+    background-color: var(--orange) !important;
+}
+
+.border-orange {
+    border-color: var(--orange) !important;
+}

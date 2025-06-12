@@ -1,19 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Recommendation Analytics{% endblock %}
 
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
     <style>
-        .debug-info {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            font-family: monospace;
-            white-space: pre-wrap;
-            display: none;
-        }
+        /* Page-specific styles only */
         .chart-container {
             height: 400px;
             position: relative;
@@ -184,7 +177,7 @@
             console.error(message, error);
             const debugInfo = document.getElementById('debugInfo');
             const errorDiv = document.createElement('div');
-            errorDiv.innerHTML = `<strong style="color: red">ERROR:</strong> ${message} - ${error.message || error}`;
+            errorDiv.innerHTML = `<strong style="color: #EC4C36">ERROR:</strong> ${message} - ${error.message || error}`;
             debugInfo.appendChild(errorDiv);
             debugInfo.style.display = 'block';
             document.getElementById('toggleDebug').textContent = 'Hide Debug Info';
@@ -203,36 +196,55 @@
                             datasets: [{
                                 label: 'Average Summary Time (s)',
                                 data: [averageSummaryTime], // Single data point
-                                backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
+                                backgroundColor: 'rgba(236, 76, 54, 0.7)', // Orange with transparency
+                                borderColor: '#EC4C36', // Orange
+                                borderWidth: 2
                             }, {
                                 label: 'Average Reviews Time (s)',
                                 data: [averageReviewsTime], // Single data point
-                                backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1
+                                backgroundColor: 'rgba(74, 71, 72, 0.7)', // Darkish grey with transparency
+                                borderColor: '#4A4748', // Darkish grey
+                                borderWidth: 2
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: '#1D1A1A' // Very dark grey for legend text
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Average Recommendation Time',
+                                    color: '#1D1A1A' // Very dark grey for title
+                                }
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Time (seconds)'
+                                        text: 'Time (seconds)',
+                                        color: '#1D1A1A' // Very dark grey
+                                    },
+                                    ticks: {
+                                        color: '#646464' // Mid grey for tick labels
+                                    },
+                                    grid: {
+                                        color: 'rgba(100, 100, 100, 0.2)' // Mid grey with transparency
                                     }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top',
                                 },
-                                title: {
-                                    display: true,
-                                    text: 'Average Recommendation Time'
+                                x: {
+                                    ticks: {
+                                        color: '#646464' // Mid grey for tick labels
+                                    },
+                                    grid: {
+                                        color: 'rgba(100, 100, 100, 0.2)' // Mid grey with transparency
+                                    }
                                 }
                             }
                         }
@@ -255,15 +267,28 @@
                             datasets: [{
                                 label: 'Average Time Saved (s)',
                                 data: averageTimeSavedByReview,
-                                backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                borderWidth: 1,
+                                backgroundColor: 'rgba(236, 76, 54, 0.7)', // Orange with transparency
+                                borderColor: '#EC4C36', // Orange
+                                borderWidth: 2,
                                 yAxisID: 'y-axis-time-saved'
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: '#1D1A1A' // Very dark grey for legend text
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Average Time Saved by Number of Reviews',
+                                    color: '#1D1A1A' // Very dark grey for title
+                                }
+                            },
                             scales: {
                                 'y-axis-time-saved': {
                                     type: 'linear',
@@ -272,26 +297,29 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Average Time Saved (seconds)'
+                                        text: 'Average Time Saved (seconds)',
+                                        color: '#1D1A1A' // Very dark grey
+                                    },
+                                    ticks: {
+                                        color: '#646464' // Mid grey for tick labels
+                                    },
+                                    grid: {
+                                        color: 'rgba(100, 100, 100, 0.2)' // Mid grey with transparency
                                     }
                                 },
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Number of Reviews'
+                                        text: 'Number of Reviews',
+                                        color: '#1D1A1A' // Very dark grey
                                     },
                                     ticks: {
-                                        stepSize: 1
+                                        stepSize: 1,
+                                        color: '#646464' // Mid grey for tick labels
+                                    },
+                                    grid: {
+                                        color: 'rgba(100, 100, 100, 0.2)' // Mid grey with transparency
                                     }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Average Time Saved by Number of Reviews'
                                 }
                             }
                         }

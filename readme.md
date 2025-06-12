@@ -57,11 +57,15 @@ This is a demonstration project which does the following:
     python manage.py generate_ai_summaries_v3.py
     ```
     This will take a very long time - approx. 20 hours on an RTX 3080 ti for ~25,000 products
-10. To run the project, use the command:
+10. To collect the static files and apply the CSS, run the command:
+    ```
+    python manage.py collectstatic
+    ```
+11. To run the project, use the command:
     ```
     python manage.py runserver
     ```
-11. Open your browser and go to the development server listed in the terminal
+12. Open your browser and go to the development server listed in the terminal
 
 ---
 ## Key Takeaways
