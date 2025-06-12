@@ -50,6 +50,7 @@ h2, h4, h5 {
     margin-bottom: 2rem;
 }
 
+
 /* Alert styles */
 .alert {
     border-radius: 0.5rem;
@@ -250,10 +251,19 @@ small {
     border-bottom: 2px solid var(--orange);
 }
 
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    margin-right: 40px;
+}
+
 .navbar-brand {
     color: var(--orange) !important;
     font-weight: 250;
+    display: flex;
+    align-items: center;
 }
+
 
 .navbar-nav .nav-link {
     color: var(--light-grey) !important;
