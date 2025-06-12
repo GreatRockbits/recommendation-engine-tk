@@ -1,13 +1,18 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Search Results{% if query %} for "{{ query }}"{% endif %}{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="mb-5">
+<div class="mb-5 mt-5">
   <!-- Header Section -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Search Results</h1>
-    <a href="{% url 'homepage' %}" class="btn btn-outline-secondary">
+    <a href="{% url 'homepage' %}" class="btn btn-primary">
       <i class="fas fa-arrow-left mr-2"></i>Back to Homepage
     </a>
   </div>
@@ -39,7 +44,7 @@
                 </a>
                 <small class="text-muted">Product ID: {{ product.product_id }}</small>
               </div>
-              <a href="{% url 'product_detail' product_id=product.product_id %}" class="btn btn-sm btn-outline-primary">
+              <a href="{% url 'product_detail' product_id=product.product_id %}" class="btn btn-sm btn-primary">
                 View Details
               </a>
             </div>
@@ -61,14 +66,6 @@
     </div>
   {% endif %}
 </div>
-
-{% block extra_css %}
-<style>
-  .list-group-item-action:hover {
-    background-color: rgba(0, 123, 255, 0.05);
-  }
-</style>
-{% endblock %}
 
 {% block extra_js %}
 <script>
