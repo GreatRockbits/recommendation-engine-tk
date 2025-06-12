@@ -4,6 +4,7 @@
 /* Custom color scheme variables */
 :root {
     --orange: #EC4C36;
+    --lightish-orange: #fbb1a1;
     --darkish-grey: #4A4748;
     --very-dark-grey: #1D1A1A;
     --mid-grey: #646464;
@@ -182,7 +183,7 @@ h2, h4, h5 {
 }
 
 .lead strong {
-    color: var(--orange);
+    color: var(--lightish-orange);
 }
 
 /* Small text styling */

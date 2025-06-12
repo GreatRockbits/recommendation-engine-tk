@@ -16,11 +16,11 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-        <h1 class="mb-4">Recommendation Performance Analytics Across {{ total_products_analyzed|default:"N/A" }} Products</h1>
+    <div class="container mt-5 pb-5">
+        <h1 class="mb-5">Recommendation Performance Analytics Across {{ total_products_analyzed|default:"N/A" }} Products</h1>
 
         {% if not no_data and average_time_saved is not None %}
-            <div class="alert alert-info">
+            <div class="alert alert-info mb-3">
                 <p class="lead mb-1">Average time saved by using AI summaries: <strong>{{ average_time_saved|floatformat:4 }} seconds</strong></p>
                 <p class="lead mb-1">Average time saved percentage by using AI summaries: <strong>{{ average_time_saved_percentage|floatformat:2 }}%</strong></p>
                 <small>(Based on {{ total_performance_records }} data points)</small>
@@ -35,7 +35,7 @@
             </div>
         {% endif %}
 
-        <button id="toggleDebug" class="btn btn-sm btn-secondary mb-3">Show Debug Info</button>
+        <button id="toggleDebug" class="btn btn-sm btn-secondary mb-5">Show Debug Info</button>
 
         <div id="debugInfo" class="debug-info">
             <h4>Debug Information:</h4>
@@ -61,7 +61,7 @@
             <div id="parsedData"></div>
         </div>
 
-        <div class="row">
+        <div class="row mb-5">
             <div class="col-md-6">
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
