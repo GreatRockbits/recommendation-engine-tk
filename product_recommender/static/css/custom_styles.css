@@ -296,3 +296,86 @@ small {
 .card.shadow-lg, .container {
   animation: fadeInAnimation 1s ease-out forwards;
 }
+
+/* --- Product Detail & Recommendation Styles --- */
+
+/* Add new themed card header variants used on the details page */
+.card-header.bg-danger {
+    background-color: #a52a2a !important; /* A dark red for errors */
+    color: white;
+}
+
+.card-header.bg-dark {
+    background-color: var(--very-dark-grey) !important;
+    color: var(--light-grey);
+}
+
+.card-header.bg-info {
+    background-color: var(--mid-grey) !important;
+    color: var(--light-grey);
+}
+
+/* Style for the main product card's price */
+.card-body .text-orange {
+    font-weight: 600;
+}
+
+/* A general utility class for adding a shadow on hover */
+.hover-shadow:hover {
+    transition: box-shadow 0.3s ease;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+/* Styles for the "Performance Overview" stats */
+.stat-item {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(74, 71, 72, 0.1); /* Use theme's stripe color */
+    margin-bottom: 1rem;
+    color: var(--darkish-grey);
+}
+.stat-item h6 {
+    color: var(--mid-grey);
+}
+
+/* Performance time badges in recommendation headers */
+.performance-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.15); /* Subtle background */
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Styles for review entries in the "Customer Reviews" section */
+.review-item {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--mid-grey);
+}
+.review-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Themed pagination styles */
+.pagination .page-link {
+    background-color: var(--light-grey);
+    color: var(--orange);
+    border-color: var(--mid-grey);
+}
+.pagination .page-link:hover {
+    background-color: rgba(236, 76, 54, 0.1);
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--orange);
+    border-color: var(--orange);
+    color: white;
+}
+.pagination .page-item.disabled .page-link {
+    background-color: var(--darkish-grey);
+    color: var(--mid-grey);
+    border-color: var(--mid-grey);
+}

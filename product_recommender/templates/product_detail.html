@@ -1,11 +1,16 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ product.name }} | Product Detail{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="mb-5">
   <!-- Product Header -->
-  <h1 class="mb-4">Product Details</h1>
+  <h1 class="mb-5 mt-5">Product Details</h1>
   
   <!-- Main Product Card -->
   <div class="card mb-5 shadow">
@@ -46,7 +51,7 @@
   </div>
 
   <!-- Performance Overview Card (New) -->
-  <div id="performance-overview" class="card mb-4 shadow" style="display: none;">
+  <div id="performance-overview" class="card mb-5 shadow" style="display: none;">
     <div class="card-header bg-info text-white">
       <h5 class="mb-0">
         <i class="fas fa-chart-line"></i> Recommendation Performance
@@ -83,8 +88,8 @@
   </div>
 
   <!-- Recommendation Sections with Loading Spinner -->
-  <div class="row mb-4">
-    <div class="col-12">
+  <div class="row mb-4 mt-3">
+    <div class="col-12 ">
       <h2>AI-Powered Recommendations</h2>
       <p class="text-muted">Comparing recommendations from AI summary vs. full review analysis</p>
     </div>
@@ -115,60 +120,6 @@
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-  .hover-shadow:hover {
-    transition: all 0.3s ease;
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-  }
-  
-  .fade-in {
-    animation: fadeIn 0.5s ease-in;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .stat-item {
-    padding: 1rem;
-    border-radius: 0.5rem;
-    background-color: rgba(0,0,0,0.05);
-    margin-bottom: 1rem;
-  }
-  
-  .recommendation-section {
-    border: 2px solid #e9ecef;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    background-color: #f8f9fa;
-  }
-  
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #dee2e6;
-  }
-  
-  .performance-badge {
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-  }
-  
-  .error-state {
-    background-color: #f8d7da;
-    border-color: #f1aeb5;
-    color: #721c24;
-  }
-</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -204,90 +155,47 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function displayRecommendations(data) {
         const container = document.getElementById('recommendations-container');
-        
         if (!data.summary_recommendations && !data.reviews_recommendations) {
-            container.innerHTML = `
-                <div class="alert alert-light fade-in">
-                    <h5>No Recommendations Available</h5>
-                    <p class="mb-0">Unable to generate recommendations for this product at this time.</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="alert alert-warning">No recommendations available for this product.</div>`;
             return;
         }
         
         let html = '';
         
-        // AI Summary Recommendations Section
-        if (data.summary_recommendations && data.summary_recommendations.length > 0) {
-            html += `
-                <div class="recommendation-section fade-in">
-                    <div class="section-header">
-                        <div>
-                            <h3 class="h4 mb-1">
-                                <i class="fas fa-brain text-success"></i> 
-                                AI Summary Recommendations
-                            </h3>
-                            <p class="text-muted mb-0 small">Based on intelligent analysis of review summaries</p>
-                        </div>
-                        <span class="badge badge-success performance-badge">
-                            <i class="fas fa-clock"></i> ${data.summary_time}
-                        </span>
-                    </div>
-                    <div class="row">
-                        ${generateRecommendationCards(data.summary_recommendations)}
-                    </div>
+        // AI Summary Recommendations Card
+        html += `
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-brain mr-2"></i>AI Summary Recommendations</h5>
+                    ${data.summary_time ? `<span class="performance-badge"><i class="fas fa-clock mr-2"></i>${data.summary_time}</span>` : ''}
                 </div>
-            `;
-        } else {
-            html += `
-                <div class="recommendation-section fade-in">
-                    <div class="section-header">
-                        <h3 class="h4 mb-0">
-                            <i class="fas fa-brain text-muted"></i> 
-                            AI Summary Recommendations
-                        </h3>
-                    </div>
-                    <div class="alert alert-light mb-0">No recommendations available from AI summary analysis.</div>
+                <div class="card-body">
+                    ${data.summary_recommendations && data.summary_recommendations.length > 0 ?
+                        `<div class="row">${generateRecommendationCards(data.summary_recommendations)}</div>` :
+                        `<div class="alert alert-info mb-0">No recommendations available from AI summary analysis.</div>`
+                    }
                 </div>
-            `;
-        }
+            </div>
+        `;
         
-        // Review Text Recommendations Section
-        if (data.reviews_recommendations && data.reviews_recommendations.length > 0) {
-            html += `
-                <div class="recommendation-section fade-in">
-                    <div class="section-header">
-                        <div>
-                            <h3 class="h4 mb-1">
-                                <i class="fas fa-comments text-warning"></i> 
-                                Review Text Recommendations
-                            </h3>
-                            <p class="text-muted mb-0 small">Based on full review text analysis</p>
-                        </div>
-                        <span class="badge badge-warning performance-badge">
-                            <i class="fas fa-clock"></i> ${data.reviews_time}
-                        </span>
-                    </div>
-                    <div class="row">
-                        ${generateRecommendationCards(data.reviews_recommendations)}
-                    </div>
+        // Review Text Recommendations Card
+        html += `
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-comments mr-2"></i>Review Text Recommendations</h5>
+                    ${data.reviews_time ? `<span class="performance-badge"><i class="fas fa-clock mr-2"></i>${data.reviews_time}</span>` : ''}
                 </div>
-            `;
-        } else {
-            html += `
-                <div class="recommendation-section fade-in">
-                    <div class="section-header">
-                        <h3 class="h4 mb-0">
-                            <i class="fas fa-comments text-muted"></i> 
-                            Review Text Recommendations
-                        </h3>
-                    </div>
-                    <div class="alert alert-light mb-0">No recommendations available from review text analysis.</div>
+                <div class="card-body">
+                    ${data.reviews_recommendations && data.reviews_recommendations.length > 0 ?
+                        `<div class="row">${generateRecommendationCards(data.reviews_recommendations)}</div>` :
+                        `<div class="alert alert-info mb-0">No recommendations available from review text analysis.</div>`
+                    }
                 </div>
-            `;
-        }
+            </div>
+        `;
         
         container.innerHTML = html;
+        container.classList.add('fadeInAnimation');
     }
     
     function generateRecommendationCards(recommendations) {
